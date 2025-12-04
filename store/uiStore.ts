@@ -6,7 +6,7 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  hideAmounts: false,
+  hideAmounts: true,
   toggleHideAmounts: () =>
     set((state) => ({ hideAmounts: !state.hideAmounts })),
 }));

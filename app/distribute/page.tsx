@@ -32,20 +32,14 @@ const DistributePage: NextPage = () => {
       for (let i = 0; i < employees.length; i++) {
         console.log(`processing the ${i + 1} transfer`);
         const emp = employees[i];
-        console.log(
-          emp,
-          parseAmountToWei(emp.amount),
-          await sdk.get_token_minimal_amount(STRK_ADDR)
-        );
         setCurrentIndex(i);
         setLoadingStep("deposit");
 
         const calls = await sdk.generate_approve_and_deposit_calls(
-          parseAmountToWei(emp.amount),
+          parseAmountToWei(emp.salary),
           STRK_ADDR
         );
         const multiCall = await account.execute(calls);
-        console.log(multiCall, sdk);
         await account.waitForTransaction(multiCall.transaction_hash);
         await sdk.download_notes(multiCall.transaction_hash);
 
@@ -58,10 +52,12 @@ const DistributePage: NextPage = () => {
       setCompleted(true);
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoadingStep(null);
     }
   };
 
-  const totalAmount = employees.reduce((sum, e) => sum + e.amount, 0);
+  const totalAmount = employees.reduce((sum, e) => sum + e.salary, 0);
 
   return (
     <div className="p-8">
@@ -89,22 +85,24 @@ const DistributePage: NextPage = () => {
           />
           {loadingStep === "deposit" && (
             <DepositStep
+              first_name={employees[currentIndex].first_name}
+              last_name={employees[currentIndex].last_name}
               employeeAddress={employees[currentIndex].address}
-              amount={employees[currentIndex].amount}
+              amount={employees[currentIndex].salary}
               loading
             />
           )}
           {loadingStep === "withdraw" && (
             <WithdrawStep
               employeeAddress={employees[currentIndex].address}
-              amount={employees[currentIndex].amount}
+              amount={employees[currentIndex].salary}
               loading
             />
           )}
           <button
             onClick={handleDistribute}
             disabled={loadingStep === "deposit" || loadingStep === "withdraw"}
-            className="bg-green-500 text-white px-4 py-2 rounded mt-4 disabled:cursor-not-allowed disabled:opacity-65"
+            className="bg-black text-white px-4 py-2 rounded mt-4 disabled:cursor-not-allowed disabled:opacity-65"
           >
             Start Distribution
           </button>

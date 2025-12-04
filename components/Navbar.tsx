@@ -19,6 +19,12 @@ export default function Navbar() {
             <>
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/employees">Employees</Link>
+              <Link
+                href="/ghost-transfer"
+                className="bg-[#4B0082] py-1 text-white px-5 rounded-full font-bold"
+              >
+                Ghost Transfer
+              </Link>
             </>
           )}
           {/* <WalletButton /> */}
