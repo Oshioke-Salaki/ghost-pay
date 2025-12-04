@@ -5,6 +5,7 @@ import { useAccount, useBalance } from "@starknet-react/core";
 import { parseAmountToWei } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { STRK_ADDR } from "@/lib/data";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function GhostTransfer() {
   const sdk = new TyphoonSDK();

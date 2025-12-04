@@ -1,4 +1,5 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import AddEmployeeForm from "./components/AddEmployeeForm";
 import CSVUploader from "./components/CSVUploader";
 import EmployeeTable from "./components/EmployeeTable";

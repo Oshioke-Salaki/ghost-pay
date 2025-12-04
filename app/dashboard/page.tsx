@@ -5,7 +5,7 @@ import EmployeeTable from "../employees/components/EmployeeTable";
 import { useUIStore } from "@/store/uiStore";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { STRK_ADDR } from "@/lib/data";
-import { useEffect } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Dashboard() {
   const { address } = useAccount();

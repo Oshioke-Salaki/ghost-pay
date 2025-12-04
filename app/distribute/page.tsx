@@ -10,6 +10,7 @@ import SuccessSummary from "./components/SuccessSummary";
 import { useAccount } from "@starknet-react/core";
 import { parseAmountToWei } from "@/lib/utils";
 import Link from "next/link";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const STRK_ADDR =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";

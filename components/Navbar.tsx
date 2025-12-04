@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
-import WalletButton from "./WalletButton";
 import WalletConnectButton from "./ConnectWalletButton";
 import { useAccount } from "@starknet-react/core";
 import ToggleAmountsDisplay from "./ToggleAmountsDisplay";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { account } = useAccount();
+  const pathname = usePathname();
   return (
     <nav className="w-full bg-white shadow-sm">
       <div className="flex items-center justify-between py-4 px-10">
@@ -31,7 +32,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex gap-x-2">
-          <ToggleAmountsDisplay />
+          {account && pathname !== "/" && <ToggleAmountsDisplay />}
           <WalletConnectButton />
         </div>
       </div>
