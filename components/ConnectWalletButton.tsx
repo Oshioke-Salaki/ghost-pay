@@ -26,7 +26,7 @@ function WalletConnectButton() {
       />
       {address ? (
         <div className="flex items-center gap-x-2 text-black">
-          <div className="flex items-center gap-x-2  p-2 border-1 border-[#515461] rounded-[6px]">
+          <div className="flex items-center gap-x-2  p-2 border border-[#515461] rounded-md">
             <img
               src="/accountUser.svg"
               alt="User Avatar"
@@ -44,7 +44,7 @@ function WalletConnectButton() {
         </div>
       ) : (
         <button
-          className="flex text-black py-2 px-3 border-1 border-[#515461] rounded-md"
+          className="flex text-black py-2 px-3 border border-[#515461] rounded-md"
           onClick={() => setShowConnectModal(true)}
         >
           Connect Wallet

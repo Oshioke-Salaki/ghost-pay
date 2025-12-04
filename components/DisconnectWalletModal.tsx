@@ -36,11 +36,11 @@ export default function WalletDisconnectModal({
   if (!isOpen) return null;
   return (
     <div
-      className="absolute inset-0 bg-gradient-to-b h-screen backdrop-blur-md from-rgba(14, 14, 16, 0.6) to-rgba(14, 14, 16, 0.6)  bg-opacity-0 flex items-center justify-center z-50"
+      className="absolute inset-0 bg-linear-to-b h-screen backdrop-blur-md from-rgba(14, 14, 16, 0.6) to-rgba(14, 14, 16, 0.6)  bg-opacity-0 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-[#0E0E10] p-6 relative w-[550px] rounded-[8px]"
+        className="bg-[#0E0E10] p-6 relative w-[550px] rounded-lg"
         onClick={(e) => {
           e.stopPropagation();
         }}
@@ -70,7 +70,7 @@ export default function WalletDisconnectModal({
           </button>
           <button
             // variant="outline"
-            className="w-full h-auto py-3 px-4 bg-transparent border-1 border-[#646982] text-white text-center"
+            className="w-full h-auto py-3 px-4 bg-transparent border border-[#646982] text-white text-center"
             onClick={onClose}
           >
             Cancel

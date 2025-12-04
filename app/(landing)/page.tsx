@@ -3,7 +3,7 @@ import { ShieldCheck, Users, Upload, Wallet, ArrowRight } from "lucide-react";
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 my-2">
+    <div className="min-h-screen bg-linear-to-b from-white to-gray-50 my-2">
       <div className="flex justify-between items-center py-10">
         <div className="flex-1">
           <h1 className="text-[54px] font-bold">GhostPay 👻</h1>
