@@ -4,10 +4,10 @@ export function parseCSV(text: string) {
     .map((l) => l.trim())
     .filter(Boolean);
   const rows = lines.map((line) => {
-    const [firstName, lastName, address, amount] = line
+    const [first_name, last_name, address, salary] = line
       .split(",")
       .map((c) => c.trim());
-    return { address, amount: Number(amount), firstName, lastName };
+    return { address, salary: Number(salary), first_name, last_name };
   });
   return rows;
 }

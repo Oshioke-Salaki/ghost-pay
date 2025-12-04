@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { usePayrollStore } from "@/store/payrollStore";
 import EmployeeTable from "../employees/components/EmployeeTable";
+import { useUIStore } from "@/store/uiStore";
 
 export default function Dashboard() {
   const employees = usePayrollStore((s) => s.employees);
-  const total = employees.reduce((s, e) => s + Number(e.amount), 0);
+  const total = employees.reduce((s, e) => s + Number(e.salary), 0);
+  const hideAmounts = useUIStore((s) => s.hideAmounts);
 
   return (
     <div className="py-10">
@@ -20,7 +22,15 @@ export default function Dashboard() {
         <div className="p-4 bg-white shadow-sm rounded">
           Total Payroll
           <br />
-          <strong className="text-3xl">{total} STRK</strong>
+          <strong
+            className={`text-3xl ${
+              hideAmounts
+                ? "blur-sm select-none transition-all duration-200"
+                : "transition-all duration-200"
+            }`}
+          >
+            {total} STRK
+          </strong>
         </div>
         <div className="p-4 bg-white shadow-sm rounded">
           Next Batch

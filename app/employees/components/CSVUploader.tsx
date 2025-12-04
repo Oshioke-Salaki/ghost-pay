@@ -3,8 +3,10 @@ import React, { useRef } from "react";
 import { parseCSV } from "@/lib/csv";
 import { usePayrollStore } from "@/store/payrollStore";
 import { Upload } from "lucide-react";
+import { useAccount } from "@starknet-react/core";
 
 export default function CSVUploader() {
+  const { address: employer_address } = useAccount();
   const addBulk = usePayrollStore((s) => s.addEmployees);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -12,8 +14,8 @@ export default function CSVUploader() {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
-    const parsed = parseCSV(text); // returns [{address,amount}, ...]
-    addBulk(parsed);
+    const parsed = parseCSV(text);
+    addBulk(parsed, employer_address as string);
   }
 
   return (
