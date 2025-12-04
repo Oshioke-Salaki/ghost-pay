@@ -4,10 +4,10 @@ import { ShieldCheck, Users, Upload, Wallet, ArrowRight } from "lucide-react";
 export default function Page() {
   return (
     <div className="min-h-screen bg-linear-to-b from-white to-gray-50 my-2">
-      <div className="flex justify-between items-center py-10">
+      <div className="grid grid-cols-2 items-center py-10 gap-x-8">
         <div className="flex-1">
-          <h1 className="text-[54px] font-bold">GhostPay 👻</h1>
-          <p className="text-gray-600 mb-10 text-2xl">
+          <h1 className="text-[45px] font-semibold">GhostPay 👻</h1>
+          <p className="text-gray-600 mb-10 text-xl">
             Private payroll for Starknet — built with Typhoon SDK
           </p>
 
@@ -19,7 +19,7 @@ export default function Page() {
           </Link>
         </div>
 
-        <img src="/ghost-pay-hero.png" className="w-[800px]" alt="" />
+        <img src="/ghost-pay-hero.png" className="w-[85%]" alt="" />
       </div>
 
       {/* WHY PRIVACY MATTERS */}
