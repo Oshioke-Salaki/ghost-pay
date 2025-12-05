@@ -46,7 +46,7 @@ function StatsGrid({
               : "blur-0 transition-all duration-300"
           }`}
         >
-          {userBalance ? parseFloat(userBalance.formatted).toFixed(2) : "-"}
+          {userBalance ? parseFloat(userBalance.formatted).toFixed(2) : "-"}{" "}
           STRK
         </strong>
       </div>

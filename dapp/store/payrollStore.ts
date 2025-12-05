@@ -1,6 +1,5 @@
 import { Employee } from "@/types/employee";
 import { supabase } from "@/utils/superbase/server";
-import { boolean } from "zod";
 import { create } from "zustand";
 
 interface PayrollState {
@@ -22,11 +21,6 @@ interface PayrollState {
     employer_address: string
   ) => void;
   removeEmployee: (index: number) => void;
-  updateEmployeeTx: (
-    index: number,
-    depositTx?: string,
-    withdrawTx?: string
-  ) => void;
   clear: () => void;
 }
 
@@ -34,9 +28,11 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
   employees: [],
 
   addEmployee: async (employee) => {
-    const { data, error } = await supabase
+    const { data, error, status } = await supabase
       .from("employees")
       .insert({ ...employee, is_active: true });
+
+    console.log(data, status, "employee add data");
 
     if (error) console.error(error);
 
@@ -54,19 +50,14 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
       employer_address,
       is_active: true,
     }));
-    console.log("adding mul emps", supabaseFormatted);
-    await supabase.from("employees").insert(supabaseFormatted);
+    const { data, error, status } = await supabase
+      .from("employees")
+      .insert(supabaseFormatted);
+
+    if (error) console.error(error);
 
     set((s) => ({
-      employees: [
-        ...s.employees,
-        ...list.map((e) => ({
-          ...e,
-          salary: Number(e.salary),
-          employer_address,
-          is_active: true,
-        })),
-      ],
+      employees: [...s.employees, ...supabaseFormatted],
     }));
   },
 
@@ -77,21 +68,6 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
 
     set((s) => ({
       employees: s.employees.filter((_, i) => i !== index),
-    }));
-  },
-
-  updateEmployeeTx: async (index, depositTx, withdrawTx) => {
-    const emp = get().employees[index];
-
-    await supabase
-      .from("employees")
-      .update({ deposit_tx: depositTx, withdraw_tx: withdrawTx })
-      .eq("address", emp.address);
-
-    set((s) => ({
-      employees: s.employees.map((emp, i) =>
-        i === index ? { ...emp, depositTx, withdrawTx } : emp
-      ),
     }));
   },
 

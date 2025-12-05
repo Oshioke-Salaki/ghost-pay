@@ -1,22 +1,3 @@
-export function formatBigInt(amount: bigint, decimals: number = 18) {
-  const divisor = BigInt(10) ** BigInt(decimals);
-  const integer = amount / divisor;
-  const fraction = amount % divisor;
-  return `${integer}.${fraction.toString().padStart(decimals, "0")}`;
-}
-
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    result.push(arr.slice(i, i + chunkSize));
-  }
-  return result;
-}
-
 export function shortenAddress(address: `0x${string}`, chars = 4): string {
   if (!address || address.length < chars * 2 + 2) return address;
   return `${address.slice(0, 5)}...${address.slice(-chars)}`;

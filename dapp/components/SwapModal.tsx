@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import { X, ArrowDown, RefreshCw, Loader2, Wallet } from "lucide-react";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { getQuotes, executeSwap, Quote } from "@avnu/avnu-sdk";
-import { parseUnits, formatUnits } from "ethers"; // or use starknet.js equivalent
 import { createPortal } from "react-dom";
+import { ETH_ADDR, STRK_ADDR } from "@/lib/data";
 
 // Standard Mainnet Addresses
 const TOKENS = {
-  ETH: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-  STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+  ETH: ETH_ADDR,
+  STRK: STRK_ADDR,
 };
 
 interface SwapModalProps {
@@ -41,9 +41,6 @@ export default function SwapModal({ isOpen, onClose }: SwapModalProps) {
 
       setLoading(true);
       try {
-        // Amount must be in BigInt (wei)
-        // Note: Assuming 18 decimals for ETH.
-        // If using starknet.js v6, use cairo.uint256 or similar, but simple string/BigInt works for AVNU
         const amountInWei = BigInt(Math.floor(parseFloat(sellAmount) * 1e18));
 
         const quotes = await getQuotes({
@@ -53,7 +50,6 @@ export default function SwapModal({ isOpen, onClose }: SwapModalProps) {
           takerAddress: address,
         });
 
-        // AVNU returns sorted quotes, best first
         setQuote(quotes[0]);
       } catch (err) {
         console.error("Quote fetch failed", err);
@@ -62,7 +58,6 @@ export default function SwapModal({ isOpen, onClose }: SwapModalProps) {
       }
     };
 
-    // Debounce slightly
     const timer = setTimeout(fetchQuote, 500);
     return () => clearTimeout(timer);
   }, [sellAmount, address]);

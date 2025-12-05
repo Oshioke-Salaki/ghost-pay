@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { CheckCircle, Home, FileText, Download } from "lucide-react";
+import { CheckCircle, Home, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Employee } from "@/types/employee";
