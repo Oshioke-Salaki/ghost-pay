@@ -1,19 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useAccount, useProvider, useBalance } from "@starknet-react/core";
-import {
-  ArrowLeft,
-  Zap,
-  Wallet,
-  Ghost,
-  CheckCircle2,
-  Loader2,
-  FileText,
-  ShieldCheck,
-  Lock,
-  AlertCircle,
-} from "lucide-react";
+import { useAccount, useProvider } from "@starknet-react/core";
+import { ArrowLeft, Zap, CheckCircle2, Loader2, FileText } from "lucide-react";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
 import { parseUnits, formatUnits } from "ethers";
 import { CallData } from "starknet";
@@ -22,52 +11,30 @@ import WalletConnectButton from "@/components/ConnectWalletButton";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import FundingSource from "./components/FundingSource";
+import { usePrivateBalance } from "@/hooks/usePrivateBalance";
 
 export default function InstantPayPage() {
   const { address, account } = useAccount();
   const { provider } = useProvider();
 
-  // Tongo Logic
   const { tongoAccount, initializeTongo, isInitializing, conversionRate } =
     useTongoAccount();
-  const [privateBalance, setPrivateBalance] = useState("0.00");
-
-  // Public Balance
-  const { data: publicBalance } = useBalance({
-    address,
-    token: STRK_ADDR,
-    watch: true,
+  const { privateBalance } = usePrivateBalance({
+    tongoAccount,
+    conversionRate,
   });
 
-  // Form State
   const [recipientAddr, setRecipientAddr] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState<"public" | "private">("public");
 
-  // Transaction State
   const [status, setStatus] = useState<"idle" | "processing" | "success">(
     "idle"
   );
   const [txHash, setTxHash] = useState("");
-
-  // Fetch Private Balance
-  useEffect(() => {
-    const fetchPriv = async () => {
-      if (!tongoAccount || !conversionRate) return;
-      try {
-        const state = await tongoAccount.state();
-        const bal = state.balance * conversionRate;
-        setPrivateBalance(formatUnits(bal.toString(), 18));
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    if (tongoAccount) fetchPriv();
-  }, [tongoAccount, conversionRate]);
-
-  // --- ACTIONS ---
 
   const handlePay = async () => {
     if (!account || !amount || !recipientAddr) return;
@@ -77,7 +44,6 @@ export default function InstantPayPage() {
       const amountWei = parseUnits(amount, 18);
 
       if (source === "public") {
-        // Standard Transfer
         const tx = await account.execute({
           contractAddress: STRK_ADDR,
           entrypoint: "transfer",
@@ -89,7 +55,6 @@ export default function InstantPayPage() {
         await provider.waitForTransaction(tx.transaction_hash);
         setTxHash(tx.transaction_hash);
       } else {
-        // Private Transfer (Withdraw)
         if (!tongoAccount || !conversionRate) throw new Error("Vault locked");
 
         const tongoUnits = amountWei / conversionRate;
@@ -102,7 +67,7 @@ export default function InstantPayPage() {
         const op = await tongoAccount.withdraw({
           sender: address!,
           amount: tongoUnits,
-          to: recipientAddr, // Send to external person
+          to: recipientAddr,
         });
 
         const tx = await account.execute([op.toCalldata()]);
@@ -179,7 +144,6 @@ export default function InstantPayPage() {
 
   return (
     <div className="py-12 px-6 md:px-[120px] max-w-7xl mx-auto">
-      {/* Header */}
       <div className="mb-10">
         <Link
           href="/dashboard"
@@ -259,7 +223,6 @@ export default function InstantPayPage() {
             animate={{ opacity: 1, y: 0 }}
             className="grid lg:grid-cols-3 gap-8 items-start"
           >
-            {/* LEFT: PAYMENT FORM */}
             <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 mb-6">
                 Payment Details
@@ -343,95 +306,15 @@ export default function InstantPayPage() {
               </div>
             </div>
 
-            {/* RIGHT: SOURCE SELECTOR */}
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide px-1">
-                Funding Source
-              </p>
-
-              {/* Option 1: Public */}
-              <button
-                onClick={() => setSource("public")}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                  source === "public"
-                    ? "border-black bg-white shadow-md"
-                    : "border-transparent bg-gray-100 hover:bg-gray-200 text-gray-500"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 font-bold">
-                    <Wallet size={18} /> Public Wallet
-                  </div>
-                  {source === "public" && (
-                    <CheckCircle2 size={18} className="text-black" />
-                  )}
-                </div>
-                <p className="text-xs opacity-70 mb-2">
-                  Visible on-chain transaction.
-                </p>
-                <p className="text-sm font-mono font-bold">
-                  {publicBalance
-                    ? parseFloat(publicBalance.formatted).toFixed(2)
-                    : "0.00"}{" "}
-                  STRK
-                </p>
-              </button>
-
-              {/* Option 2: Private */}
-              <button
-                onClick={() => {
-                  setSource("private");
-                  if (!tongoAccount) initializeTongo();
-                }}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all relative overflow-hidden ${
-                  source === "private"
-                    ? "border-purple-600 bg-purple-50 text-purple-900 shadow-md"
-                    : "border-transparent bg-gray-100 hover:bg-gray-200 text-gray-500"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2 relative z-10">
-                  <div className="flex items-center gap-2 font-bold">
-                    <Ghost size={18} /> Ghost Vault
-                  </div>
-                  {tongoAccount ? (
-                    source === "private" && (
-                      <CheckCircle2 size={18} className="text-purple-600" />
-                    )
-                  ) : (
-                    <Lock size={16} />
-                  )}
-                </div>
-                <p className="text-xs opacity-70 mb-2 relative z-10">
-                  Anonymous transfer via Tongo.
-                </p>
-
-                {tongoAccount ? (
-                  <p className="text-sm font-mono font-bold relative z-10">
-                    {parseFloat(privateBalance).toFixed(2)} tSTRK
-                  </p>
-                ) : (
-                  <div className="flex items-center gap-1 text-xs font-bold bg-white/50 w-fit px-2 py-1 rounded">
-                    {isInitializing ? "Unlocking..." : "Click to Unlock"}
-                  </div>
-                )}
-
-                {/* Decoration */}
-                {source === "private" && (
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl -mr-5 -mt-5"></div>
-                )}
-              </button>
-
-              <div className="bg-blue-50 p-4 rounded-xl flex gap-3 items-start">
-                <ShieldCheck
-                  size={20}
-                  className="text-blue-600 shrink-0 mt-0.5"
-                />
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  <strong>Pro Tip:</strong> Use the Ghost Vault for payments you
-                  want to keep off your public ledger history.
-                </p>
-              </div>
-            </div>
+            <FundingSource
+              tongoAccount={tongoAccount}
+              initializeTongo={initializeTongo}
+              address={address}
+              source={source}
+              setSource={setSource}
+              privateBalance={privateBalance}
+              isInitializing={isInitializing}
+            />
           </motion.div>
         )}
       </AnimatePresence>

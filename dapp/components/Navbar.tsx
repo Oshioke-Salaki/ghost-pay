@@ -7,8 +7,6 @@ import { usePathname } from "next/navigation";
 import {
   Ghost,
   LayoutDashboard,
-  Users,
-  Sparkles,
   CircleDollarSign,
   Building2,
 } from "lucide-react";

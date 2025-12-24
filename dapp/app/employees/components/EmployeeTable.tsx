@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { usePayrollStore } from "@/store/payrollStore";
-import { Trash, Loader2, User, Copy } from "lucide-react";
+import { Trash, Loader2, User } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { shortenAddress } from "@/lib/utils";
 import { useUIStore } from "@/store/uiStore";
@@ -20,10 +20,8 @@ export default function EmployeeTable() {
   const { activeOrganization } = useOrganizationStore();
   const router = useRouter();
 
-  const pathname = usePathname();
   const params = useParams();
 
-  // Resolve organization ID from URL params or global state
   const organizationId = params.organizationId
     ? Array.isArray(params.organizationId)
       ? params.organizationId[0]
@@ -77,7 +75,6 @@ export default function EmployeeTable() {
 
   return (
     <div className="mt-6">
-      {/* Table Container */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
           <h3 className="font-semibold text-gray-900">Employee Roster</h3>
@@ -180,7 +177,6 @@ export default function EmployeeTable() {
             onClick={() => {
               router.push(`/employees?org=${organizationId}`);
             }}
-            // href={}
             className="px-6 py-3 rounded-lg border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition-colors"
           >
             Manage Employees

@@ -53,7 +53,7 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
       >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Connect Wallet</h2>
+            <h2 className="text-lg font-bold text-gray-900">Connect Wallet</h2>
             <p className="text-sm text-gray-500 mt-1">
               Select a Starknet wallet to continue
             </p>
@@ -80,7 +80,7 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
                   className="group w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition-all duration-200 text-left"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 p-1.5">
+                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 p-1.5">
                       {iconSrc ? (
                         <img
                           src={iconSrc}
@@ -92,7 +92,7 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
                       )}
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 group-hover:text-black">
+                      <div className="font-semibold text-gray-900 text-smd group-hover:text-black">
                         {connector.name}
                       </div>
                       <div className="text-xs text-gray-500 group-hover:text-gray-700">
