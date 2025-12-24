@@ -36,7 +36,7 @@ const SuccessSummary: React.FC<SuccessSummaryProps> = ({
       28
     );
     doc.text(`TIMESTAMP:    ${new Date().toLocaleString()}`, 14, 33);
-    doc.text(`PROTOCOL:     TYPHOON-ZK-MIXER`, 14, 38);
+    doc.text(`PROTOCOL:     TONGO`, 14, 38);
 
     // -- SEPARATOR LINE --
     doc.setLineWidth(0.5);

@@ -10,11 +10,9 @@ export default function AddEmployeeForm() {
   const { address: employerAddress } = useAccount();
   const add = usePayrollStore((s) => s.addEmployee);
 
-  // Get organization context from URL or Store
   const params = useParams();
   const { activeOrganization } = useOrganizationStore();
 
-  // Prefer URL param for consistency in dynamic routes, fallback to store
   const organizationId = params.organizationId
     ? Array.isArray(params.organizationId)
       ? params.organizationId[0]
@@ -43,7 +41,6 @@ export default function AddEmployeeForm() {
       return;
     }
 
-    // Simulate a tiny delay for UX feel
     setTimeout(() => {
       add({
         first_name: firstName,
@@ -54,7 +51,6 @@ export default function AddEmployeeForm() {
         organization_id: organizationId,
       });
 
-      // Reset fields
       setFirstName("");
       setLastName("");
       setAddress("");

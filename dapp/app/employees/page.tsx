@@ -1,18 +1,10 @@
 "use client";
-
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAccount } from "@starknet-react/core";
-import {
-  ArrowLeft,
-  Users,
-  ShieldAlert,
-  UserPlus,
-  Upload,
-  Building2,
-} from "lucide-react";
+import { ArrowLeft, Users, UserPlus, Upload, Building2 } from "lucide-react";
 import { useOrganizationStore } from "@/store/organizationStore";
 
 // Components
@@ -20,7 +12,7 @@ import AddEmployeeForm from "@/app/employees/components/AddEmployeeForm";
 import MagicInput from "@/components/MagicInput";
 import CSVUploader from "@/app/employees/components/CSVUploader";
 import EmployeeTable from "@/app/employees/components/EmployeeTable";
-import WalletConnectButton from "@/components/ConnectWalletButton";
+import WalletRequired from "@/components/WalletRequired";
 
 function EmployeesContent() {
   const searchParams = useSearchParams();
@@ -41,10 +33,8 @@ function EmployeesContent() {
     setIsClient(true);
   }, []);
 
-  // 1. Sync the Active Organization based on the Query parameter
   useEffect(() => {
     if (address && organizationId) {
-      // If store is empty (reload), fetch first
       if (organizations.length === 0) {
         fetchOrganizations(address);
       }
@@ -53,7 +43,6 @@ function EmployeesContent() {
         (c) => c.id === organizationId
       );
 
-      // Update store if mismatch
       if (
         targetOrganization &&
         targetOrganization.id !== activeOrganization?.id
@@ -70,36 +59,17 @@ function EmployeesContent() {
     setActiveOrganization,
   ]);
 
-  // Gatekeeper: Wallet Check
   if (!address) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-8 rounded-2xl border border-gray-200 max-w-md w-full shadow-sm"
-        >
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
-            <ShieldAlert size={32} />
-          </div>
-          <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
-          <p className="text-gray-500 mb-8">
-            Connect your wallet to manage this organization's roster.
-          </p>
-          <div className="flex justify-center">
-            <WalletConnectButton />
-          </div>
-        </motion.div>
-      </div>
+      <WalletRequired description="Connect your wallet to manage this organization's roster." />
     );
   }
 
-  // Not Found State (if ID provided but doesn't exist in user's organizations)
   if (
     isClient &&
     !isLoading &&
     organizations.length > 0 &&
-    organizationId && // Only check if an ID was actually requested
+    organizationId &&
     activeOrganization?.id !== organizationId
   ) {
     return (
@@ -121,7 +91,6 @@ function EmployeesContent() {
     );
   }
 
-  // Fallback if no org selected (optional, depends on if you want to allow global view)
   if (!organizationId && !activeOrganization) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
@@ -137,7 +106,6 @@ function EmployeesContent() {
 
   return (
     <div className="py-12 px-6 md:px-[120px] max-w-7xl mx-auto">
-      {/* --- HEADER --- */}
       <div className="mb-10">
         <Link
           href={`/organizations/${organizationId}`}
@@ -165,9 +133,7 @@ function EmployeesContent() {
         </div>
       </div>
 
-      {/* --- INPUT METHODS GRID --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12 items-stretch">
-        {/* 1. Manual Entry */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,11 +146,9 @@ function EmployeesContent() {
             </div>
             <h3 className="text-lg font-bold text-gray-900">Manual Entry</h3>
           </div>
-          {/* Form auto-reads activeOrg from store */}
           <AddEmployeeForm />
         </motion.div>
 
-        {/* 2. Magic AI Input */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -194,7 +158,6 @@ function EmployeesContent() {
           <MagicInput />
         </motion.div>
 
-        {/* 3. Bulk Upload */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -213,7 +176,6 @@ function EmployeesContent() {
         </motion.div>
       </div>
 
-      {/* --- ROSTER TABLE --- */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -224,7 +186,6 @@ function EmployeesContent() {
           <Users size={20} className="text-gray-400" />
           <h3 className="text-xl font-bold text-gray-900">Current Roster</h3>
         </div>
-        {/* Table auto-reads activeOrg from store */}
         <EmployeeTable />
       </motion.div>
     </div>

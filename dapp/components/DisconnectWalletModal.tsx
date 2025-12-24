@@ -25,7 +25,6 @@ export default function WalletDisconnectModal({
       document.body.style.overflow = "unset";
     }
 
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -36,10 +35,8 @@ export default function WalletDisconnectModal({
     onClose();
   };
 
-  // Don't render anything on the server or if closed
   if (!mounted || !isOpen) return null;
 
-  // 3. Render into document.body using createPortal
   return createPortal(
     <div
       className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity animate-in fade-in"
@@ -49,7 +46,6 @@ export default function WalletDisconnectModal({
         className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 mx-4 transform transition-all animate-in zoom-in-95 duration-200 border border-gray-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all"
           onClick={onClose}
@@ -57,13 +53,12 @@ export default function WalletDisconnectModal({
           <X size={20} />
         </button>
 
-        {/* Content */}
         <div className="text-center pt-2">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <LogOut size={32} className="text-red-500 ml-1" />
+          <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <LogOut size={20} className="text-red-500 ml-1" />
           </div>
 
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">
             Disconnect Wallet
           </h2>
 
@@ -72,7 +67,7 @@ export default function WalletDisconnectModal({
             manage payroll.
           </p>
 
-          <div className="space-y-3">
+          <div className="space-y-3 text-sm">
             <button
               onClick={handleDisconnect}
               className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md"
