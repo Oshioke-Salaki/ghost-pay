@@ -64,7 +64,7 @@ function Footer() {
                 isGhostMode ? "hover:text-white" : "hover:text-black"
               }`}
             >
-              Powered by Typhoon
+              Powered by Tongo cash
             </span>
             <span
               className={`cursor-pointer transition-colors ${

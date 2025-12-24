@@ -60,8 +60,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`antialiased relative ${clashGroteskFont.className}`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        suppressHydrationWarning
+        className={`antialiased relative ${clashGroteskFont.className}`}
+      >
         <StarknetProvider>
           <div className="flex flex-col min-h-screen relative">
             <Navbar />

@@ -18,3 +18,21 @@ export function parseAmountToWei(amount: string | number): bigint {
 
   return BigInt(whole) * 10n ** 18n + BigInt(fractionPadded);
 }
+
+export function formatWeiToAmount(wei: bigint, decimals = 18): string {
+  const base = 10n ** BigInt(decimals);
+
+  const whole = wei / base;
+  const fraction = wei % base;
+
+  if (fraction === 0n) {
+    return whole.toString();
+  }
+
+  const fractionStr = fraction
+    .toString()
+    .padStart(decimals, "0")
+    .replace(/0+$/, ""); // trim trailing zeros
+
+  return `${whole}.${fractionStr}`;
+}
