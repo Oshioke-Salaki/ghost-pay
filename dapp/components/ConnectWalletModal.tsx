@@ -1,7 +1,7 @@
 "use client";
-import { Connector, useConnect } from "@starknet-react/core";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Connector, useConnect } from "@starknet-react/core";
 import { X, Wallet, ArrowRight } from "lucide-react";
 
 interface ConnectModalProps {
@@ -12,6 +12,10 @@ interface ConnectModalProps {
 function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
   const { connectAsync, connectors } = useConnect();
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    console.log(connectors);
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -63,45 +67,46 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
         </div>
 
         <div className="space-y-3">
-          {connectors.map((connector: Connector) => {
-            const iconSrc =
-              typeof connector.icon === "object"
-                ? (connector.icon as any).dark
-                : connector.icon;
-            return (
-              <button
-                key={connector.id}
-                onClick={() => handleConnect(connector)}
-                className="group w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition-all duration-200 text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 p-1.5">
-                    {iconSrc ? (
-                      <img
-                        src={iconSrc}
-                        alt={connector.name}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <Wallet size={20} className="text-gray-400" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 group-hover:text-black">
-                      {connector.name}
+          {mounted &&
+            connectors.map((connector: Connector) => {
+              const iconSrc =
+                typeof connector.icon === "object"
+                  ? (connector.icon as any).dark
+                  : connector.icon;
+              return (
+                <button
+                  key={connector.id}
+                  onClick={() => handleConnect(connector)}
+                  className="group w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-black hover:shadow-md transition-all duration-200 text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 p-1.5">
+                      {iconSrc ? (
+                        <img
+                          src={iconSrc}
+                          alt={connector.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <Wallet size={20} className="text-gray-400" />
+                      )}
                     </div>
-                    <div className="text-xs text-gray-500 group-hover:text-gray-700">
-                      Detected
+                    <div>
+                      <div className="font-semibold text-gray-900 group-hover:text-black">
+                        {connector.name}
+                      </div>
+                      <div className="text-xs text-gray-500 group-hover:text-gray-700">
+                        Detected
+                      </div>
                     </div>
                   </div>
-                </div>
-                <ArrowRight
-                  size={16}
-                  className="text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all"
-                />
-              </button>
-            );
-          })}
+                  <ArrowRight
+                    size={16}
+                    className="text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all"
+                  />
+                </button>
+              );
+            })}
         </div>
 
         <div className="mt-8 text-center pt-6 border-t border-gray-100">

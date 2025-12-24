@@ -10,6 +10,7 @@ interface PayrollState {
     address: string;
     salary: number;
     employer_address: string;
+    organization_id: string;
   }) => void;
   addEmployees: (
     list: {

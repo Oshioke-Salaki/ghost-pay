@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams, useRouter } from "next/navigation";
 import { usePayrollStore } from "@/store/payrollStore";
 import { Trash, Loader2, User, Copy } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
@@ -9,6 +9,7 @@ import { shortenAddress } from "@/lib/utils";
 import { useUIStore } from "@/store/uiStore";
 import { supabase } from "@/utils/superbase/server";
 import { useAccount } from "@starknet-react/core";
+import { useOrganizationStore } from "@/store/organizationStore";
 
 export default function EmployeeTable() {
   const { address: employer } = useAccount();
@@ -16,11 +17,21 @@ export default function EmployeeTable() {
   const employees = usePayrollStore((s) => s.employees);
   const remove = usePayrollStore((s) => s.removeEmployee);
   const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const { activeOrganization } = useOrganizationStore();
+  const router = useRouter();
 
   const pathname = usePathname();
+  const params = useParams();
+
+  // Resolve organization ID from URL params or global state
+  const organizationId = params.organizationId
+    ? Array.isArray(params.organizationId)
+      ? params.organizationId[0]
+      : params.organizationId
+    : activeOrganization?.id;
 
   useEffect(() => {
-    if (!employer) return;
+    if (!employer || !organizationId) return;
 
     const fetchEmployees = async () => {
       setLoading(true);
@@ -28,8 +39,8 @@ export default function EmployeeTable() {
         const { data, error } = await supabase
           .from("employees")
           .select("*")
-          .eq("employer_address", employer);
-
+          .eq("employer_address", employer)
+          .eq("organization_id", organizationId);
         if (error) throw error;
 
         usePayrollStore.setState({
@@ -51,7 +62,7 @@ export default function EmployeeTable() {
     };
 
     fetchEmployees();
-  }, [employer]);
+  }, [employer, organizationId]);
 
   if (loading) {
     return (
@@ -163,18 +174,22 @@ export default function EmployeeTable() {
       </div>
 
       <div className="mt-8 flex items-center justify-end gap-4">
-        {pathname !== "/employees" && (
-          <Link
-            href="/employees"
+        {organizationId && (
+          <button
+            disabled={loading}
+            onClick={() => {
+              router.push(`/employees?org=${organizationId}`);
+            }}
+            // href={}
             className="px-6 py-3 rounded-lg border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition-colors"
           >
             Manage Employees
-          </Link>
+          </button>
         )}
 
-        {employees.length > 0 && (
+        {employees.length > 0 && organizationId && (
           <Link
-            href="/distribute"
+            href={`/organizations/${organizationId}/distribute`}
             className="px-6 py-3 rounded-lg bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-colors shadow-lg"
           >
             Review & Distribute

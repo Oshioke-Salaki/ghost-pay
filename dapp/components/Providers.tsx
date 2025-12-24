@@ -13,12 +13,8 @@ import {
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const { connectors } = useInjectedConnectors({
-    // Show these connectors if the user has no connector installed.
     recommended: [argent(), braavos()],
-    // Hide recommended connectors if the user has any connector installed.
-    includeRecommended: "onlyIfNoConnectors",
-    // Randomize the order of the connectors.
-    order: "alphabetical",
+    includeRecommended: "always",
   });
 
   const rpc = useCallback((chain: Chain) => {
@@ -34,7 +30,8 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     <StarknetConfig
       chains={[mainnet]}
       provider={provider}
-      connectors={connectors ?? []}
+      connectors={connectors}
+      autoConnect={true}
       explorer={voyager}
     >
       {children}

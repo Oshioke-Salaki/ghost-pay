@@ -13,7 +13,7 @@ function HeroSection() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
           </span>
-          Powered by Typhoon SDK
+          Powered by Tongo Cash
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-black">

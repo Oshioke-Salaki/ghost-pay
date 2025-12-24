@@ -3,10 +3,23 @@ import React, { useState } from "react";
 import { usePayrollStore } from "@/store/payrollStore";
 import { useAccount } from "@starknet-react/core";
 import { Plus, Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useOrganizationStore } from "@/store/organizationStore";
 
 export default function AddEmployeeForm() {
   const { address: employerAddress } = useAccount();
   const add = usePayrollStore((s) => s.addEmployee);
+
+  // Get organization context from URL or Store
+  const params = useParams();
+  const { activeOrganization } = useOrganizationStore();
+
+  // Prefer URL param for consistency in dynamic routes, fallback to store
+  const organizationId = params.organizationId
+    ? Array.isArray(params.organizationId)
+      ? params.organizationId[0]
+      : params.organizationId
+    : activeOrganization?.id;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -16,6 +29,12 @@ export default function AddEmployeeForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!organizationId) {
+      alert("No organization selected. Please select a organization first.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     if (Number(amount) < 10) {
@@ -32,6 +51,7 @@ export default function AddEmployeeForm() {
         address,
         salary: Number(amount),
         employer_address: employerAddress as string,
+        organization_id: organizationId,
       });
 
       // Reset fields
