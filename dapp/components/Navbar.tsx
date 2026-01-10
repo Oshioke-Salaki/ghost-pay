@@ -33,8 +33,13 @@ export default function Navbar() {
             <Menu size={24} />
           </button>
 
-          {/* Mobile Logo (only visible on mobile, since Sidebar has it on desktop) */}
-          <Link href="/" className="flex items-center gap-2 group md:hidden">
+          {/* Logo - Hidden on desktop typically (in Sidebar), but SHOWN if we are on landing page or mobile */}
+          <Link
+            href="/"
+            className={`flex items-center gap-2 group ${
+              pathname === "/" ? "flex" : "flex md:hidden"
+            }`}
+          >
             <div className="p-1.5 rounded-lg bg-black text-white">
               <Ghost size={20} />
             </div>

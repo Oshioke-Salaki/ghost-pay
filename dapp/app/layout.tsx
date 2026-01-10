@@ -5,6 +5,7 @@ import "./globals.css";
 import { StarknetProvider } from "@/components/Providers";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "GhostPay | Private Starknet Payroll",
@@ -80,6 +81,7 @@ export default function RootLayout({
               </div>
             </div>
           </div>
+          <Toaster position="bottom-right" />
         </StarknetProvider>
       </body>
     </html>

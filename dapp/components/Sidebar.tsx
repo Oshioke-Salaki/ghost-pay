@@ -16,6 +16,8 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
+  if (pathname === "/") return null;
+
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Treasury", href: "/finance", icon: Landmark },
