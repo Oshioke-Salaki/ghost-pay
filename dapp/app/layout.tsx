@@ -6,6 +6,7 @@ import { StarknetProvider } from "@/components/Providers";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
+import MobileFooterWrapper from "@/components/MobileFooterWrapper";
 
 export const metadata: Metadata = {
   title: "GhostPay | Private Starknet Payroll",
@@ -76,9 +77,7 @@ export default function RootLayout({
                 {children}
               </main>
               {/* Footer removed from here or moved inside main if needed, but per design usually sidebar layouts have minimal footer or it's at bottom of main */}
-              <div className="md:hidden">
-                <Footer />
-              </div>
+              <MobileFooterWrapper />
             </div>
           </div>
           <Toaster position="bottom-right" />

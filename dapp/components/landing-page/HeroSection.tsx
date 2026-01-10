@@ -4,7 +4,7 @@ import React from "react";
 
 function HeroSection() {
   return (
-    <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+    <section className="pt-20 pb-20 px-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"></div>
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -50,38 +50,40 @@ function HeroSection() {
           <div className="w-3 h-3 rounded-full bg-yellow-400" />
           <div className="w-3 h-3 rounded-full bg-green-400" />
         </div>
-        <div className="p-8 font-mono text-sm text-gray-800 space-y-4">
-          <div className="flex justify-between border-b border-gray-200 pb-2 text-gray-400">
-            <span>EMPLOYEE</span>
-            <span>AMOUNT</span>
-            <span>STATUS</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 rounded-full" /> alice.stark
-            </span>
-            <span>4,500.00 STRK</span>
-            <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-600">
-              PROCESSING
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 rounded-full" /> bob.stark
-            </span>
-            <span>3,200.00 STRK</span>
-            <span className="text-xs bg-black text-white px-2 py-1 rounded">
-              VANISHED
-            </span>
-          </div>
-          <div className="flex justify-between items-center opacity-50">
-            <span className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 rounded-full" /> charlie.stark
-            </span>
-            <span>Hidden</span>
-            <span className="text-xs border border-gray-300 px-2 py-1 rounded">
-              PENDING
-            </span>
+        <div className="p-8 font-mono text-sm text-gray-800 overflow-x-auto">
+          <div className="min-w-[600px] space-y-4">
+            <div className="flex justify-between border-b border-gray-200 pb-2 text-gray-400">
+              <span>EMPLOYEE</span>
+              <span>AMOUNT</span>
+              <span>STATUS</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gray-200 rounded-full" /> alice.stark
+              </span>
+              <span>4,500.00 STRK</span>
+              <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-600">
+                PROCESSING
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gray-200 rounded-full" /> bob.stark
+              </span>
+              <span>3,200.00 STRK</span>
+              <span className="text-xs bg-black text-white px-2 py-1 rounded">
+                VANISHED
+              </span>
+            </div>
+            <div className="flex justify-between items-center opacity-50">
+              <span className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gray-200 rounded-full" /> charlie.stark
+              </span>
+              <span>Hidden</span>
+              <span className="text-xs border border-gray-300 px-2 py-1 rounded">
+                PENDING
+              </span>
+            </div>
           </div>
         </div>
       </div>
