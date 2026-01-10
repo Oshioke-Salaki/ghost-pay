@@ -3,6 +3,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import LiquidityOverview from "./LiquidityOverview";
 import { supabase } from "@/utils/superbase/server";
 import { Organization } from "@/store/organizationStore";
+import { useUIStore } from "@/store/uiStore";
 
 function QuickStats({
   setShowSwap,
@@ -16,6 +17,7 @@ function QuickStats({
     totalPayroll: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const hideAmounts = useUIStore((s) => s.hideAmounts);
 
   useEffect(() => {
     const loadGlobalStats = async () => {
@@ -60,7 +62,11 @@ function QuickStats({
           <TrendingUp size={18} /> Monthly Liability
         </div>
         <div>
-          <p className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <p
+            className={`text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2 transition-all duration-300 ${
+              hideAmounts ? "blur-md select-none" : ""
+            }`}
+          >
             {loadingStats ? (
               <Loader2 className="animate-spin text-gray-400" size={24} />
             ) : (

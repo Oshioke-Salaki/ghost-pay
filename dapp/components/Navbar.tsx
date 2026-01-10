@@ -9,71 +9,42 @@ import {
   LayoutDashboard,
   CircleDollarSign,
   Building2,
+  Menu,
 } from "lucide-react";
+import { useUIStore } from "@/store/uiStore";
 
 export default function Navbar() {
   const { account } = useAccount();
   const pathname = usePathname();
+  const { setSidebarOpen } = useUIStore();
 
   return (
     <nav
       className={`
-        w-full transition-colors duration-300 border-b bg-white border-gray-200 text-gray-900
+        w-full transition-colors duration-300 border-b bg-white border-gray-200 text-gray-900 md:border-b-0
       `}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div
-            className={`p-1.5 rounded-lg transition-colors bg-black text-white`}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg"
           >
-            <Ghost size={20} />
-          </div>
-          <span className={`font-bold text-xl tracking-tight text-gray-900`}>
-            GhostPay
-          </span>
-        </Link>
+            <Menu size={24} />
+          </button>
 
-        {account && (
-          <div
-            className={`hidden md:flex items-center gap-1 p-1 rounded-full border transition-colors bg-gray-100/50 border-gray-200`}
-          >
-            <Link
-              href="/dashboard"
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                pathname === "/dashboard"
-                  ? "bg-white text-black shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <LayoutDashboard size={16} />
-              Dashboard
-            </Link>
-            <Link
-              href="/finance"
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                pathname === "/finance"
-                  ? "bg-white text-black shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <CircleDollarSign size={16} />
-              Finance
-            </Link>
-            <Link
-              href="/organizations"
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                pathname === "/organizations"
-                  ? "bg-white text-black shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <Building2 size={16} />
-              Organizations
-            </Link>
-          </div>
-        )}
+          {/* Mobile Logo (only visible on mobile, since Sidebar has it on desktop) */}
+          <Link href="/" className="flex items-center gap-2 group md:hidden">
+            <div className="p-1.5 rounded-lg bg-black text-white">
+              <Ghost size={20} />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-gray-900">
+              GhostPay
+            </span>
+          </Link>
+        </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 ml-auto">
           {account && (
             <>
               {pathname !== "/" && (

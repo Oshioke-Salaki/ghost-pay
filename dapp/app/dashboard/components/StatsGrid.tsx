@@ -112,7 +112,7 @@ function StatsGrid({
           {tongoAccount ? (
             <>
               <strong
-                className={`text-3xl font-mono text-purple-900 block ${
+                className={`text-3xl  text-purple-900 block ${
                   hideAmounts ? "blur-md select-none" : ""
                 }`}
               >
@@ -176,7 +176,7 @@ function StatCard({
       </div>
 
       <strong
-        className={`text-3xl font-mono text-gray-900 block ${
+        className={`text-3xl text-gray-900 block ${
           isBlur
             ? "blur-md select-none transition-all duration-300"
             : "blur-0 transition-all duration-300"

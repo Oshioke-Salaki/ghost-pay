@@ -11,6 +11,7 @@ interface PayrollState {
     salary: number;
     employer_address: string;
     organization_id: string;
+    position?: string;
   }) => void;
   addEmployees: (
     list: {
@@ -18,6 +19,7 @@ interface PayrollState {
       last_name: string;
       address: string;
       salary: number;
+      position?: string;
     }[],
     employer_address: string
   ) => void;
@@ -48,6 +50,7 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
       last_name: x.last_name,
       address: x.address,
       salary: x.salary,
+      position: x.position,
       employer_address,
       is_active: true,
     }));
