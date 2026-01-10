@@ -26,12 +26,14 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-          >
-            <Menu size={24} />
-          </button>
+          {pathname !== "/" && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <Menu size={24} />
+            </button>
+          )}
 
           {/* Logo - Hidden on desktop typically (in Sidebar), but SHOWN if we are on landing page or mobile */}
           <Link
