@@ -4,6 +4,7 @@ import { STRK_ADDR } from "@/lib/data";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { CreditCard, Ghost, Loader2, Lock } from "lucide-react";
 import React, { Dispatch, SetStateAction, useState } from "react";
+import { useUIStore } from "@/store/uiStore";
 
 function LiquidityOverview({
   setShowSwap,
@@ -13,6 +14,7 @@ function LiquidityOverview({
   const { address } = useAccount();
   const { tongoAccount, conversionRate, initializeTongo, isInitializing } =
     useTongoAccount();
+  const hideAmounts = useUIStore((s) => s.hideAmounts);
   const [balanceView, setBalanceView] = useState<"public" | "private">(
     "public"
   );
@@ -71,7 +73,11 @@ function LiquidityOverview({
 
         <div className="mt-1">
           {balanceView === "public" ? (
-            <span className="text-4xl font-mono font-bold text-gray-900 tracking-tighter flex items-center gap-2">
+            <span
+              className={`text-4xl font-bold text-gray-900 tracking-tighter flex items-center gap-2 transition-all duration-300 ${
+                hideAmounts ? "blur-md select-none" : ""
+              }`}
+            >
               {loadingPublicBalance ? (
                 <Loader2 className="animate-spin text-gray-400" size={24} />
               ) : (
@@ -86,7 +92,11 @@ function LiquidityOverview({
               )}
             </span>
           ) : tongoAccount ? (
-            <span className="text-4xl font-mono font-bold text-purple-900 tracking-tighter flex items-center gap-2">
+            <span
+              className={`text-4xl font-bold text-purple-900 tracking-tighter flex items-center gap-2 transition-all duration-300 ${
+                hideAmounts ? "blur-md select-none" : ""
+              }`}
+            >
               {loadingPrivateBalance ? (
                 <Loader2 className="animate-spin text-purple-400" size={24} />
               ) : (

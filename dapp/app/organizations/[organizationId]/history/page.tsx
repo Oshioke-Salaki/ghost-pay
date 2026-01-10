@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/utils/superbase/server";
 import WalletConnectButton from "@/components/ConnectWalletButton";
 import { useOrganizationStore } from "@/store/organizationStore";
+import { useUIStore } from "@/store/uiStore";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -39,6 +40,7 @@ export default function HistoryPage() {
   const { address } = useAccount();
   const { activeOrganization, fetchOrganizations, organizations } =
     useOrganizationStore();
+  const hideAmounts = useUIStore((s) => s.hideAmounts);
 
   const [history, setHistory] = useState<PayrollRun[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -271,7 +273,11 @@ export default function HistoryPage() {
                     <td className="px-6 py-4 text-gray-900">
                       {run.recipient_count} Employees
                     </td>
-                    <td className="px-6 py-4 font-mono font-bold">
+                    <td
+                      className={`px-6 py-4 font-mono font-bold transition-all duration-300 ${
+                        hideAmounts ? "blur-sm select-none" : ""
+                      }`}
+                    >
                       {run.total_amount.toFixed(2)} {run.currency || "STRK"}
                     </td>
                     <td className="px-6 py-4">

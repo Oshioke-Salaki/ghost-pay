@@ -23,6 +23,7 @@ export default function AddEmployeeForm() {
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
+  const [position, setPosition] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,12 +50,14 @@ export default function AddEmployeeForm() {
         salary: Number(amount),
         employer_address: employerAddress as string,
         organization_id: organizationId,
+        position,
       });
 
       setFirstName("");
       setLastName("");
       setAddress("");
       setAmount("");
+      setPosition("");
       setIsSubmitting(false);
     }, 300);
   };
@@ -91,12 +94,24 @@ export default function AddEmployeeForm() {
 
       <div className="space-y-1">
         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Wallet Address
+          Position
+        </label>
+        <input
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+          className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+          placeholder="Software Engineer"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Wallet Address (Starknet)
         </label>
         <input
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+          className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
           placeholder="0x..."
           required
         />

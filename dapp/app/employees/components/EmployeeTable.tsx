@@ -48,6 +48,7 @@ export default function EmployeeTable() {
               last_name: d.last_name,
               address: d.address,
               salary: Number(d.salary),
+              position: d.position,
               employer_address: d.employer_address,
               is_active: true,
             })) || [],
@@ -89,6 +90,7 @@ export default function EmployeeTable() {
               <thead className="bg-white text-gray-500 font-medium border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Position</th>
                   <th className="px-6 py-4">Wallet Address</th>
                   <th className="px-6 py-4">Salary</th>
                   <th className="px-6 py-4">Status</th>
@@ -109,6 +111,18 @@ export default function EmployeeTable() {
                         </div>
                         {e.first_name} {e.last_name}
                       </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      {e.position ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                          {e.position}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">
+                          -
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-6 py-4">
