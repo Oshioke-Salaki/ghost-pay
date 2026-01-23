@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/store/uiStore";
+import { useViewModeStore } from "@/store/viewModeStore";
 import {
   Ghost,
   LayoutDashboard,
@@ -11,19 +12,36 @@ import {
   Landmark,
   X,
 } from "lucide-react";
+import ModeSwitcher from "./ModeSwitcher";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { isSidebarOpen, setSidebarOpen } = useUIStore();
 
-  if (pathname === "/") return null;
+  const { mode } = useViewModeStore();
+  const [mounted, setMounted] = React.useState(false);
 
-  const navItems = [
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const organizationNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Treasury", href: "/finance", icon: Landmark },
+    { name: "Vault", href: "/vault", icon: Landmark },
     { name: "Organizations", href: "/organizations", icon: Building2 },
     { name: "Instant Pay", href: "/instant-pay", icon: Zap },
   ];
+
+  const personalNavItems = [
+    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Vault", href: "/vault", icon: Landmark },
+    { name: "Income Hub", href: "/work", icon: Building2 },
+    { name: "Activity", href: "/activity", icon: Zap },
+    { name: "Settings", href: "/settings", icon: Ghost },
+  ];
+
+  const navItems =
+    mode === "organization" ? organizationNavItems : personalNavItems;
 
   const handleLinkClick = () => {
     // Close sidebar on mobile when a link is clicked
@@ -71,29 +89,32 @@ export default function Sidebar() {
             </button>
           </div>
 
+          {/* <ModeSwitcher /> */}
+
           {/* Navigation Items */}
           <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={handleLinkClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                    isActive
-                      ? "bg-gray-100 text-black shadow-sm"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                >
-                  <item.icon
-                    size={20}
-                    className={isActive ? "text-black" : "text-gray-400"}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
+            {mounted &&
+              navItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={handleLinkClick}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                      isActive
+                        ? "bg-gray-100 text-black shadow-sm"
+                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <item.icon
+                      size={20}
+                      className={isActive ? "text-black" : "text-gray-400"}
+                    />
+                    {item.name}
+                  </Link>
+                );
+              })}
           </nav>
 
           {/* Bottom Area (Optional: Version or extra links) */}

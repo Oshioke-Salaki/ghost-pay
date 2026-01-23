@@ -18,12 +18,7 @@ function Footer() {
             </p>
           </div>
 
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-gray-50 border-gray-200 text-gray-600 border`}
-          >
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            Operational Status
-          </div>
+
         </div>
 
         <div

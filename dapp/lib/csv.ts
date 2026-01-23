@@ -7,7 +7,7 @@ export function parseCSV(text: string) {
     const [first_name, last_name, address, salary] = line
       .split(",")
       .map((c) => c.trim());
-    return { address, salary: Number(salary), first_name, last_name };
+    return { address, salary_usd: Number(salary), first_name, last_name };
   });
   return rows;
 }

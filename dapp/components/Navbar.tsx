@@ -12,11 +12,13 @@ import {
   Menu,
 } from "lucide-react";
 import { useUIStore } from "@/store/uiStore";
+import { useViewModeStore } from "@/store/viewModeStore";
 
 export default function Navbar() {
   const { account } = useAccount();
   const pathname = usePathname();
   const { setSidebarOpen } = useUIStore();
+  const { mode, setMode } = useViewModeStore();
 
   return (
     <nav
@@ -50,6 +52,8 @@ export default function Navbar() {
             </span>
           </Link>
         </div>
+
+
 
         <div className="flex items-center gap-3 ml-auto">
           {account && (

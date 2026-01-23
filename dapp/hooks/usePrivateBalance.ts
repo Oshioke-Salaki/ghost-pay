@@ -1,53 +1,81 @@
 import { useEffect, useState, useCallback } from "react";
 import { formatUnits } from "ethers";
+
 type UsePrivateBalanceArgs = {
-  tongoAccount?: {
-    state: () => Promise<{ balance: bigint }>;
-  } | null;
-  conversionRate?: bigint;
+  tongoAccounts?: Record<
+    string,
+    {
+      state: () => Promise<{ balance: bigint }>;
+    }
+  >;
+  conversionRates?: Record<string, bigint>;
   pollInterval?: number;
 };
 
 export function usePrivateBalance({
-  tongoAccount,
-  conversionRate,
+  tongoAccounts,
+  conversionRates,
   pollInterval = 10_000,
 }: UsePrivateBalanceArgs) {
-  const [privateBalance, setPrivateBalance] = useState<string>("0.0");
+  // Store balances as a map: { "STRK": "120.5", "USDC": "5000.0" }
+  const [privateBalances, setPrivateBalances] = useState<Record<string, string>>(
+    {}
+  );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const [errors, setErrors] = useState<Record<string, unknown>>({});
 
-  const fetchPrivateBalance = useCallback(async () => {
-    if (!tongoAccount || !conversionRate) return;
+  const fetchPrivateBalances = useCallback(async () => {
+    if (!tongoAccounts || Object.keys(tongoAccounts).length === 0) return;
+    if (!conversionRates) return;
 
     setLoading(true);
-    setError(null);
+    setErrors({});
+
+    const newBalances: Record<string, string> = {};
+    const newErrors: Record<string, unknown> = {};
 
     try {
-      const state = await tongoAccount.state();
-      const bal = state.balance * conversionRate;
-      setPrivateBalance(formatUnits(bal, 18));
+      // Parallel fetch for all tokens
+      await Promise.all(
+        Object.entries(tongoAccounts).map(async ([symbol, account]) => {
+          try {
+            const state = await account.state();
+            const rate = conversionRates[symbol];
+
+            if (rate) {
+              const bal = state.balance * rate;
+              newBalances[symbol] = formatUnits(bal, 18);
+            } else {
+              newBalances[symbol] = "0.0"; // Fallback if no rate found
+            }
+          } catch (e) {
+            console.error(`Failed to fetch balance for ${symbol}:`, e);
+            newErrors[symbol] = e;
+          }
+        })
+      );
+
+      setPrivateBalances((prev) => ({ ...prev, ...newBalances }));
     } catch (e) {
-      console.error(e);
-      setError(e);
+      console.error("Global fetch error:", e);
     } finally {
       setLoading(false);
     }
-  }, [tongoAccount, conversionRate]);
+  }, [tongoAccounts, conversionRates]);
 
   useEffect(() => {
-    if (!tongoAccount || !conversionRate) return;
+    if (!tongoAccounts || !conversionRates) return;
 
-    fetchPrivateBalance();
-    const interval = setInterval(fetchPrivateBalance, pollInterval);
+    fetchPrivateBalances();
+    const interval = setInterval(fetchPrivateBalances, pollInterval);
 
     return () => clearInterval(interval);
-  }, [fetchPrivateBalance, pollInterval, tongoAccount, conversionRate]);
+  }, [fetchPrivateBalances, pollInterval, tongoAccounts, conversionRates]);
 
   return {
-    privateBalance,
+    privateBalances,
     loadingPrivateBalance: loading,
-    refetchPrivateBalance: fetchPrivateBalance,
-    error,
+    refetchPrivateBalances: fetchPrivateBalances,
+    errors,
   };
 }
