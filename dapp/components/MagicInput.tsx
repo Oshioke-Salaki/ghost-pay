@@ -4,7 +4,7 @@ import { Sparkles, Wand2, Loader2 } from "lucide-react";
 import { usePayrollStore } from "@/store/payrollStore";
 import { useAccount } from "@starknet-react/core";
 
-export default function MagicInput() {
+export default function MagicInput({ organizationId }: { organizationId: string }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const { address: employerAddress } = useAccount();
@@ -29,11 +29,11 @@ export default function MagicInput() {
           first_name: e.first_name || "Unknown",
           last_name: e.last_name || "",
           address: e.address || "",
-          salary: Number(e.salary) || 0,
+          salary_usd: Number(e.salary) || 0,
           employer_address: employerAddress,
         }));
 
-        addBulk(hydrated, employerAddress as string);
+        addBulk(hydrated, organizationId, employerAddress as string);
         setText("");
       }
     } catch (error) {

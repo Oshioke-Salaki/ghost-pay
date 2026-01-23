@@ -28,7 +28,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
       const { data, error } = await supabase
         .from("organizations")
         .select("*")
-        .eq("owner_address", ownerAddress)
+        .eq("owner_address", ownerAddress.toLowerCase())
         .order("created_at", { ascending: true });
 
       if (error) throw error;

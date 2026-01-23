@@ -8,20 +8,20 @@ interface PayrollState {
     first_name: string;
     last_name: string;
     address: string;
-    salary: number;
+    salary_usd: number;
     employer_address: string;
     organization_id: string;
     position?: string;
   }) => void;
   addEmployees: (
-    list: {
+    employees: {
       first_name: string;
       last_name: string;
       address: string;
-      salary: number;
-      position?: string;
+      salary_usd: number;
     }[],
-    employer_address: string
+    organizationId: string,
+    employerAddress: string
   ) => void;
   removeEmployee: (index: number) => void;
   clear: () => void;
@@ -35,8 +35,6 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
       .from("employees")
       .insert({ ...employee, is_active: true });
 
-    console.log(data, status, "employee add data");
-
     if (error) console.error(error);
 
     set((s) => ({
@@ -44,31 +42,30 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
     }));
   },
 
-  addEmployees: async (list, employer_address) => {
-    const supabaseFormatted = list.map((x) => ({
-      first_name: x.first_name,
-      last_name: x.last_name,
-      address: x.address,
-      salary: x.salary,
-      position: x.position,
-      employer_address,
+  addEmployees: async (employees, organizationId, employerAddress) => {
+    const employeesWithMeta = employees.map((e) => ({
+      ...e,
+      organization_id: organizationId,
+      employer_address: employerAddress,
       is_active: true,
     }));
-    const { data, error, status } = await supabase
-      .from("employees")
-      .insert(supabaseFormatted);
 
-    if (error) console.error(error);
+    const { error } = await supabase.from("employees").insert(employeesWithMeta);
+
+    if (error) {
+      console.error("Bulk add error:", error);
+      return;
+    }
 
     set((s) => ({
-      employees: [...s.employees, ...supabaseFormatted],
+      employees: [...s.employees, ...employeesWithMeta],
     }));
   },
 
   removeEmployee: async (index) => {
     const emp = get().employees[index];
-
-    await supabase.from("employees").delete().eq("address", emp.address);
+    // Delete by address AND employer/org to be safe
+    await supabase.from("employees").delete().eq("address", emp.address).eq("organization_id", emp.organization_id);
 
     set((s) => ({
       employees: s.employees.filter((_, i) => i !== index),
@@ -76,8 +73,6 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
   },
 
   clear: async () => {
-    await supabase.from("employees").delete().neq("id", 0);
-
     set({ employees: [] });
   },
 }));

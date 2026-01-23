@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import Navbar from "@/components/Navbar";
 import "./globals.css";
 import { StarknetProvider } from "@/components/Providers";
-import Sidebar from "@/components/Sidebar";
-import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
-import MobileFooterWrapper from "@/components/MobileFooterWrapper";
 
 export const metadata: Metadata = {
   title: "GhostPay | Private Starknet Payroll",
@@ -69,17 +65,7 @@ export default function RootLayout({
         className={`antialiased relative ${clashGroteskFont.className}`}
       >
         <StarknetProvider>
-          <div className="flex h-screen bg-white">
-            <Sidebar />
-            <div className="flex-1 flex flex-col h-screen overflow-hidden">
-              <Navbar />
-              <main className="flex-1 overflow-y-auto bg-white p-6 relative">
-                {children}
-              </main>
-              {/* Footer removed from here or moved inside main if needed, but per design usually sidebar layouts have minimal footer or it's at bottom of main */}
-              <MobileFooterWrapper />
-            </div>
-          </div>
+          {children}
           <Toaster position="bottom-right" />
         </StarknetProvider>
       </body>

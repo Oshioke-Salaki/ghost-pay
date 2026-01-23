@@ -7,12 +7,16 @@ import { TONGO_CONTRACTS } from "@/lib/tongoData";
 export const useTongoAccount = () => {
   const { account, address } = useAccount();
 
-  const [tongoAccount, setTongoAccount] = useState<TongoAccount | null>(null);
+  // Registry of Tongo Accounts: Token Symbol -> TongoAccount Instance
+  const [tongoAccounts, setTongoAccounts] = useState<
+    Record<string, TongoAccount>
+  >({});
   const [isInitializing, setIsInitializing] = useState(false);
-  // Default to Mainnet STRK rate initially so it's never zero
-  const [conversionRate, setConversionRate] = useState<bigint>(
-    BigInt(TONGO_CONTRACTS["mainnet"]["STRK"].rate)
-  );
+
+  // Rate Registry: Token Symbol -> BigInt Rate
+  const [conversionRates, setConversionRates] = useState<
+    Record<string, bigint>
+  >({});
 
   const tongoProvider = useMemo(() => {
     return new RpcProvider({
@@ -40,7 +44,7 @@ export const useTongoAccount = () => {
     try {
       console.log(`🔌 Tongo Init: Forcing MAINNET connection`);
 
-      // 2. Sign Message for Deterministic Key
+      // 1. Sign Message for Deterministic Key (Once for all tokens)
       const signature = await account.signMessage({
         types: {
           StarkNetDomain: [
@@ -57,11 +61,12 @@ export const useTongoAccount = () => {
           chainId: constants.StarknetChainId.SN_MAIN, // Force Mainnet Chain ID
         },
         message: {
-          action: "login",
+          action: "ghostpay-login-v1",
+          wallet: address,
         },
       });
 
-      // 3. Derive Key
+      // 2. Derive Key
       let r, s;
       if (Array.isArray(signature)) {
         r = signature[0];
@@ -72,45 +77,41 @@ export const useTongoAccount = () => {
         s = signature.s;
       }
 
-      // Compute hash of signature components to get a deterministic seed
       let seed = hash.computePoseidonHash(r, s);
-
-      // Ensure seed string has 0x prefix if missing, to prevent BigInt parsing errors
       if (typeof seed === "string" && !seed.startsWith("0x")) {
         seed = "0x" + seed;
       }
 
-      // Ensure the private key is within the curve order using starknet.js utility
       let privateKey = ec.starkCurve.grindKey(seed);
-
-      // Ensure privateKey string has 0x prefix if missing
       if (typeof privateKey === "string" && !privateKey.startsWith("0x")) {
         privateKey = "0x" + privateKey;
       }
 
-      // 4. Select Contract - Hardcoded to Mainnet and STRK
-      const contractInfo = TONGO_CONTRACTS["mainnet"]["STRK"];
+      // 3. Initialize ALL Token Accounts
+      const newAccounts: Record<string, TongoAccount> = {};
+      const newRates: Record<string, bigint> = {};
+      const tokens = TONGO_CONTRACTS["mainnet"]; // Hardcoded to Mainnet per requirement
 
-      if (!contractInfo) {
-        throw new Error(`No contract found for token STRK on mainnet`);
+      for (const [symbol, contractInfo] of Object.entries(tokens)) {
+        console.log(
+          `🎯 Init Tongo for [${symbol}]: ${contractInfo.address}`
+        );
+
+        // Store Rate
+        newRates[symbol] = BigInt(contractInfo.rate);
+
+        // Init SDK Instance
+        newAccounts[symbol] = new TongoAccount(
+          privateKey,
+          contractInfo.address,
+          tongoProvider
+        );
       }
 
-      // Update rate state
-      setConversionRate(BigInt(contractInfo.rate));
+      setConversionRates(newRates);
+      setTongoAccounts(newAccounts);
 
-      console.log(
-        `🎯 Targeting Tongo Contract: ${contractInfo.address} on mainnet`
-      );
-
-      // 5. Initialize SDK with the specific RPC Provider
-      const newTongoAccount = new TongoAccount(
-        privateKey,
-        contractInfo.address,
-        tongoProvider
-      );
-
-      setTongoAccount(newTongoAccount);
-      return newTongoAccount;
+      return newAccounts;
     } catch (err: any) {
       console.error("Failed to init Tongo:", err);
       alert(`Initialization Error: ${err.message}`);
@@ -119,5 +120,22 @@ export const useTongoAccount = () => {
     }
   }, [account, address, tongoProvider]);
 
-  return { tongoAccount, initializeTongo, isInitializing, conversionRate };
+  // Helper to get a specific account instance
+  const getAccount = useCallback(
+    (symbol: string) => {
+      return tongoAccounts[symbol] || null;
+    },
+    [tongoAccounts]
+  );
+
+  return {
+    tongoAccounts,
+    getAccount,
+    initializeTongo,
+    isInitializing,
+    conversionRates,
+    // Keep legacy single-account return for gradual refactor if needed, 
+    // but better to break it to force updates:
+    // tongoAccount: tongoAccounts["STRK"] // Optional: remove this to enforce new pattern
+  };
 };
