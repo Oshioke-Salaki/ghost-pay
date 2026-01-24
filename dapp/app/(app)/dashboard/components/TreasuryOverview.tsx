@@ -1,26 +1,17 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Loader2, Lock, Shield, Plus, Wallet, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
-import { usePrivateBalance } from "@/hooks/usePrivateBalance";
-import { TONGO_CONTRACTS } from "@/lib/tongoData";
 import TokenCard from "./TokenCard";
 import Link from "next/link";
 
+import { usePortfolio } from "@/hooks/usePortfolio";
+
 export default function TreasuryOverview() {
-  const { tongoAccounts, initializeTongo, isInitializing, conversionRates } =
-    useTongoAccount();
-  const { privateBalances, loadingPrivateBalance } = usePrivateBalance({
-    tongoAccounts,
-    conversionRates,
-  });
+  const { tongoAccounts, initializeTongo, isInitializing } = useTongoAccount();
+  const { assets, loading } = usePortfolio();
 
   const [viewMode, setViewMode] = useState<"public" | "private">("private");
-  const tokens = Object.keys(TONGO_CONTRACTS["mainnet"]);
   const isVaultLocked = !tongoAccounts || Object.keys(tongoAccounts).length === 0;
-
-      useEffect(()=>{
-      console.log(tokens, "tokens keys")
-    }, [tokens])
   return (
     <div className="mb-8 p-1">
       {/* Header Section */}
@@ -83,13 +74,12 @@ export default function TreasuryOverview() {
 
       {/* Asset Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {tokens.map((symbol) => (
+        {assets.map((asset) => (
             <TokenCard 
-                key={symbol}
-                symbol={symbol}
+                key={asset.symbol}
+                asset={asset}
                 viewMode={viewMode}
-                privateBalance={privateBalances[symbol]}
-                loadingPrivate={loadingPrivateBalance}
+                loading={loading}
                 isVaultLocked={isVaultLocked}
             />
         ))}

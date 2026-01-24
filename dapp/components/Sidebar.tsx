@@ -11,6 +11,7 @@ import {
   Zap,
   Landmark,
   X,
+  HelpCircle,
 } from "lucide-react";
 import ModeSwitcher from "./ModeSwitcher";
 
@@ -30,6 +31,7 @@ export default function Sidebar() {
     { name: "Vault", href: "/vault", icon: Landmark },
     { name: "Organizations", href: "/organizations", icon: Building2 },
     { name: "Instant Pay", href: "/instant-pay", icon: Zap },
+    { name: "How it Works", href: "/how-it-works", icon: HelpCircle },
   ];
 
   const personalNavItems = [
@@ -38,6 +40,7 @@ export default function Sidebar() {
     { name: "Income Hub", href: "/work", icon: Building2 },
     { name: "Activity", href: "/activity", icon: Zap },
     { name: "Settings", href: "/settings", icon: Ghost },
+    { name: "How it Works", href: "/how-it-works", icon: HelpCircle },
   ];
 
   const navItems =

@@ -1,7 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Lock } from "lucide-react";
-import { useBalance, useAccount } from "@starknet-react/core";
-import { TONGO_CONTRACTS } from "@/lib/tongoData";
 import { useUIStore } from "@/store/uiStore";
 
 // Hardcoded Logo URLs for display
@@ -13,47 +11,27 @@ const TOKEN_LOGOS: Record<string, string> = {
   WBTC: "https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=026",
 };
 
+import { AssetPortfolio } from "@/hooks/usePortfolio";
+
 type TokenCardProps = {
-  symbol: string;
+  asset: AssetPortfolio;
   viewMode: "public" | "private";
-  privateBalance: string | undefined;
-  loadingPrivate: boolean;
   isVaultLocked: boolean;
+  loading: boolean;
 };
 
 export default function TokenCard({
-  symbol,
+  asset,
   viewMode,
-  privateBalance,
-  loadingPrivate,
   isVaultLocked,
+  loading,
 }: TokenCardProps) {
-  const { address } = useAccount();
   const hideAmounts = useUIStore((s) => s.hideAmounts);
-  const logo = TOKEN_LOGOS[symbol];
+  const logo = TOKEN_LOGOS[asset.symbol];
 
-  // Always get token info
-  const tokenInfo = TONGO_CONTRACTS["mainnet"][symbol as keyof typeof TONGO_CONTRACTS["mainnet"]];
-
-  // Always pass token address to avoid default ETH fetch
-  const { data: publicData, isLoading: loadingPublic } = useBalance({
-    address,
-    token: tokenInfo?.erc20 as `0x${string}`,
-    watch: viewMode === "public", 
-    refetchInterval: viewMode === "public" ? 10000 : false,
-    enabled: viewMode === "public",
-  });
-
-  useEffect(()=>{
-    console.log(publicData, symbol, "publicData")
-  }, [publicData, symbol])
-
-  const publicBalance = publicData ? parseFloat(publicData.formatted).toFixed(2) : "0.00";
-  const formattedPrivate = privateBalance ? parseFloat(privateBalance).toFixed(2) : "0.00";
-
-  const displayBalance = viewMode === "public" ? publicBalance : formattedPrivate;
-  const isLoading = viewMode === "public" ? loadingPublic : loadingPrivate;
-  
+  const displayBalance = viewMode === "public" 
+    ? parseFloat(asset.formattedPublic || "0").toFixed(2) 
+    : parseFloat(asset.formattedPrivate || "0").toFixed(2);
   const showLocked = viewMode === "private" && isVaultLocked;
 
   return (
@@ -69,7 +47,7 @@ export default function TokenCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logo}
-            alt={symbol}
+            alt={asset.symbol}
             width={28}
             height={28}
             className="rounded-full object-contain"
@@ -94,13 +72,13 @@ export default function TokenCard({
 
       <div>
         <p className="text-xs font-bold text-gray-400 mb-0.5">
-            {viewMode === "private" ? `t${symbol}` : symbol}
+            {viewMode === "private" ? `t${asset.symbol}` : asset.symbol}
         </p>
         
         <div className="flex items-baseline gap-1">
           {showLocked ? (
              <span className="text-2xl font-bold text-gray-200">Locked</span>
-          ) : isLoading && !displayBalance ? ( 
+          ) : loading && !displayBalance ? ( 
              <div className="h-8 w-24 bg-gray-100 animate-pulse rounded" />
           ) : (
             <span 

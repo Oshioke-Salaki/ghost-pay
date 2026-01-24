@@ -1,16 +1,12 @@
 "use client";
 import { Loader2, TrendingUp, Building2 } from "lucide-react";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import LiquidityOverview from "./LiquidityOverview";
+
 import { useUIStore } from "@/store/uiStore";
 import { useAccount } from "@starknet-react/core";
 import { supabase } from "@/utils/superbase/server";
 
-function PersonalStatsGrid({
-  setShowSwap,
-}: {
-  setShowSwap: Dispatch<SetStateAction<boolean>>;
-}) {
+export default function PersonalStatsGrid() {
   const hideAmounts = useUIStore((s) => s.hideAmounts);
   const { address } = useAccount();
 
@@ -66,11 +62,8 @@ function PersonalStatsGrid({
   }, [address]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-      {/* 1. Liquidity (Wallet/Vault) */}
-      <LiquidityOverview setShowSwap={setShowSwap} />
-
-      {/* 2. Monthly Income Estimation */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      {/* 1. Monthly Income Estimation */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 text-gray-500 font-medium text-sm mb-4">
           <TrendingUp size={18} /> Est. Monthly Income
@@ -96,7 +89,7 @@ function PersonalStatsGrid({
         </div>
       </div>
 
-      {/* 3. Active Employment */}
+      {/* 2. Active Employment */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 text-gray-500 font-medium text-sm mb-4">
           <Building2 size={18} /> Active Employers
@@ -104,9 +97,9 @@ function PersonalStatsGrid({
         <div>
           <p className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
             {loading ? (
-               <Loader2 className="animate-spin text-gray-400" size={24} />
+              <Loader2 className="animate-spin text-gray-400" size={24} />
             ) : (
-               stats.activeOrgs
+              stats.activeOrgs
             )}
           </p>
           <p className="text-xs text-gray-500 mt-2">
@@ -118,4 +111,4 @@ function PersonalStatsGrid({
   );
 }
 
-export default PersonalStatsGrid;
+
