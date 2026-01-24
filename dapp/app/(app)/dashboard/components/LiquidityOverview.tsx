@@ -1,7 +1,6 @@
-import { usePrivateBalance } from "@/hooks/usePrivateBalance";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
-import { STRK_ADDR } from "@/lib/data";
-import { useAccount, useBalance } from "@starknet-react/core";
+import { usePortfolio } from "@/hooks/usePortfolio";
+import { useAccount } from "@starknet-react/core";
 import { CreditCard, Ghost, Loader2, Lock } from "lucide-react";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { useUIStore } from "@/store/uiStore";
@@ -19,19 +18,16 @@ function LiquidityOverview({
     "public"
   );
   
-  const { privateBalances, loadingPrivateBalance } = usePrivateBalance({
-    tongoAccounts,
-    conversionRates,
-  });
-
-  const privateBalance = privateBalances?.["STRK"] || "0";
+  const { assets, loading } = usePortfolio();
+  
+  // Extract STRK asset
+  const strkAsset = assets.find(a => a.symbol === "STRK");
+  const publicBalance = strkAsset?.formattedPublic || "0.00";
+  const privateBalance = strkAsset?.formattedPrivate || "0.00";
+  const loadingPublicBalance = loading;
+  const loadingPrivateBalance = loading;
+  
   const tongoAccount = tongoAccounts?.["STRK"];
-
-  const { data: publicBalance, isLoading: loadingPublicBalance } = useBalance({
-    address,
-    token: STRK_ADDR,
-    watch: true,
-  });
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
       <div className="flex justify-between items-center mb-6">
@@ -87,9 +83,7 @@ function LiquidityOverview({
                 <Loader2 className="animate-spin text-gray-400" size={24} />
               ) : (
                 <>
-                  {publicBalance
-                    ? parseFloat(publicBalance.formatted).toFixed(2)
-                    : "0.00"}{" "}
+                  {parseFloat(publicBalance).toFixed(2)}{" "}
                   <span className="text-xl text-gray-400 font-normal">
                     STRK
                   </span>

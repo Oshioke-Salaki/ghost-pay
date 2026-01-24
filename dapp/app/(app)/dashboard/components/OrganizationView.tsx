@@ -5,6 +5,7 @@ import SwapModal from "@/components/SwapModal";
 import WrapModal from "@/components/finance/WrapModal";
 import QuickStats from "./QuickStats";
 import TreasuryOverview from "./TreasuryOverview"; // Import explicitly
+import GhostScore from "./GhostScore";
 import RecentOrganizations from "./RecentOrganizations";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
 
@@ -25,6 +26,11 @@ export default function OrganizationView() {
         tongoAccounts={tongoAccounts}
       />
       
+      
+      {/* <div className="mb-0">
+         <GhostScore />
+      </div> */}
+
       {/* 1. Vault Assets Section (Top Priority) */}
       <TreasuryOverview />
 

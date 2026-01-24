@@ -12,9 +12,8 @@ import {
 } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
-import { usePrivateBalance } from "@/hooks/usePrivateBalance";
+import { usePortfolio } from "@/hooks/usePortfolio";
 import CopyButton from "@/components/CopyButton";
-import { TONGO_CONTRACTS } from "@/lib/tongoData";
 import VaultTokenRow from "./VaultTokenRow";
 import ShieldModal from "@/components/finance/ShieldModal";
 import SwapModal from "@/components/SwapModal";
@@ -25,15 +24,10 @@ export default function PersonalAssets() {
     tongoAccounts,
     initializeTongo,
     isInitializing,
-    conversionRates,
     getAccount,
   } = useTongoAccount();
 
-  const { privateBalances, refetchPrivateBalances } = usePrivateBalance({
-    tongoAccounts,
-    conversionRates,
-    pollInterval: 30000, 
-  });
+  const { assets, loading } = usePortfolio();
 
   const [showShieldModal, setShowShieldModal] = useState(false);
   const [shieldMode, setShieldMode] = useState<"shield" | "unshield">("shield");
@@ -76,7 +70,7 @@ export default function PersonalAssets() {
     );
   }
 
-  const tokens = Object.keys(TONGO_CONTRACTS["mainnet"]);
+
 
   const openManager = () => {
     setShieldMode("shield"); // Default to shield, user can toggle
@@ -146,11 +140,11 @@ export default function PersonalAssets() {
               <Lock size={20} /> Your Portfolio
           </h4>
           <div className="space-y-3">
-              {tokens.map((symbol) => (
+              {assets.map((asset) => (
                   <VaultTokenRow
-                    key={symbol}
-                    symbol={symbol}
-                    privateBalance={privateBalances[symbol] || "0"}
+                    key={asset.symbol}
+                    asset={asset}
+                    loading={loading}
                   />
               ))}
           </div>
@@ -161,10 +155,13 @@ export default function PersonalAssets() {
         isOpen={showShieldModal}
         onClose={() => {
             setShowShieldModal(false);
-            refetchPrivateBalances();
+            // Auto refreshes via hook polling
         }}
         tongoAccounts={tongoAccounts}
-        privateBalances={privateBalances}
+        /* privateBalances need to be compatible. ShieldModal uses Record<string,string>. 
+           assets is array. We should reconstruct the map or update ShieldModal.
+           For now let's construct map from assets to keep ShieldModal compatible.*/
+        privateBalances={assets.reduce((acc, a) => ({...acc, [a.symbol]: a.formattedPrivate}), {})}
         initialMode={shieldMode}
       />
 

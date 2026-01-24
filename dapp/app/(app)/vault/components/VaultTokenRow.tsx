@@ -1,8 +1,9 @@
 import React from "react";
 import { ArrowLeftRight, Lock, Shield, Wallet } from "lucide-react";
-import { useBalance, useAccount } from "@starknet-react/core";
-import { TONGO_CONTRACTS } from "@/lib/tongoData";
+import { useAccount } from "@starknet-react/core";
 import { useUIStore } from "@/store/uiStore";
+
+import { AssetPortfolio } from "@/hooks/usePortfolio";
 
 // Hardcoded Logo URLs
 const TOKEN_LOGOS: Record<string, string> = {
@@ -14,28 +15,20 @@ const TOKEN_LOGOS: Record<string, string> = {
 };
 
 type VaultTokenRowProps = {
-  symbol: string;
-  privateBalance: string;
+  asset: AssetPortfolio;
+  loading: boolean;
 };
 
 export default function VaultTokenRow({
-  symbol,
-  privateBalance,
+  asset,
+  loading,
 }: VaultTokenRowProps) {
   const { address } = useAccount();
   const hideAmounts = useUIStore((s) => s.hideAmounts);
-  const logo = TOKEN_LOGOS[symbol];
-  const tokenInfo = TONGO_CONTRACTS["mainnet"][symbol as keyof typeof TONGO_CONTRACTS["mainnet"]];
+  const logo = TOKEN_LOGOS[asset.symbol];
 
-  // Fetch Public Balance
-  const { data: publicData, isLoading: loadingPublic } = useBalance({
-    address,
-    token: tokenInfo?.erc20 as `0x${string}`,
-    refetchInterval: 10000,
-  });
-
-  const publicBalStr = publicData ? parseFloat(publicData.formatted).toFixed(4) : "0.0000";
-  const privateBalStr = parseFloat(privateBalance || "0").toFixed(4);
+  const publicBalStr = parseFloat(asset.formattedPublic || "0").toFixed(4);
+  const privateBalStr = parseFloat(asset.formattedPrivate || "0").toFixed(4);
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:shadow-sm transition-all mb-3">
@@ -45,14 +38,14 @@ export default function VaultTokenRow({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logo}
-            alt={symbol}
+            alt={asset.symbol}
             width={28}
             height={28}
             className="rounded-full object-contain"
           />
         </div>
         <div>
-          <h3 className="font-bold text-gray-900">{symbol}</h3>
+          <h3 className="font-bold text-gray-900">{asset.symbol}</h3>
           <p className="text-xs text-gray-400">Starknet Mainnet</p>
         </div>
       </div>
@@ -64,7 +57,7 @@ export default function VaultTokenRow({
             <p className="text-[10px] uppercase font-bold text-gray-400 mb-0.5 flex items-center gap-1 justify-end md:justify-center">
                 <Wallet size={10} /> Public
             </p>
-            <p className={`font-mono font-medium text-gray-900 ${loadingPublic ? "animate-pulse bg-gray-100 rounded text-transparent" : ""} ${hideAmounts ? "blur-sm" : ""}`}>
+            <p className={`font-mono font-medium text-gray-900 ${loading ? "animate-pulse bg-gray-100 rounded text-transparent" : ""} ${hideAmounts ? "blur-sm" : ""}`}>
                 {publicBalStr}
             </p>
         </div>
