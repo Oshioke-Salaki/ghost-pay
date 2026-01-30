@@ -19,11 +19,12 @@ interface PayrollState {
       last_name: string;
       address: string;
       salary_usd: number;
+      position?: string;
     }[],
     organizationId: string,
-    employerAddress: string
-  ) => void;
-  removeEmployee: (index: number) => void;
+    employerAddress: string,
+  ) => Promise<void>;
+  removeEmployee: (index: number) => Promise<void>;
   clear: () => void;
 }
 
@@ -43,6 +44,8 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
   },
 
   addEmployees: async (employees, organizationId, employerAddress) => {
+    if (employees.length === 0) return;
+
     const employeesWithMeta = employees.map((e) => ({
       ...e,
       organization_id: organizationId,
@@ -50,7 +53,9 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
       is_active: true,
     }));
 
-    const { error } = await supabase.from("employees").insert(employeesWithMeta);
+    const { error } = await supabase
+      .from("employees")
+      .insert(employeesWithMeta);
 
     if (error) {
       console.error("Bulk add error:", error);
@@ -65,7 +70,11 @@ export const usePayrollStore = create<PayrollState>((set, get) => ({
   removeEmployee: async (index) => {
     const emp = get().employees[index];
     // Delete by address AND employer/org to be safe
-    await supabase.from("employees").delete().eq("address", emp.address).eq("organization_id", emp.organization_id);
+    await supabase
+      .from("employees")
+      .delete()
+      .eq("address", emp.address)
+      .eq("organization_id", emp.organization_id);
 
     set((s) => ({
       employees: s.employees.filter((_, i) => i !== index),

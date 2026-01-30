@@ -39,8 +39,8 @@ export default function UnshieldModal({
 
     // Basic client side balance check (using number comparison for simplicity, though BigInt is safer)
     if (Number(amount) > Number(privateBalance)) {
-        toast.error("Insufficient shielded balance");
-        return;
+      toast.error("Insufficient shielded balance");
+      return;
     }
 
     setLoading(true);
@@ -48,7 +48,6 @@ export default function UnshieldModal({
       const amountWei = parseUnits(amount, 18);
       // SDK might expect withdraw(amount, recipient)
       const tx = await tongoAccount.withdraw(amountWei, recipient);
-      console.log("Withdraw tx:", tx);
       toast.success("Unshielding initiated! Funds usually arrive in 2-5 mins.");
       onClose();
       setAmount("");
@@ -89,9 +88,9 @@ export default function UnshieldModal({
                 placeholder="0.00"
                 className="w-full bg-transparent text-3xl font-mono font-bold outline-none placeholder:text-gray-600"
               />
-              <button 
-                 onClick={() => setAmount(privateBalance.toString())}
-                 className="text-xs font-bold text-gray-300 hover:text-white bg-gray-800 px-2 py-1 rounded"
+              <button
+                onClick={() => setAmount(privateBalance.toString())}
+                className="text-xs font-bold text-gray-300 hover:text-white bg-gray-800 px-2 py-1 rounded"
               >
                 MAX
               </button>
@@ -102,39 +101,34 @@ export default function UnshieldModal({
           </div>
 
           <div className="space-y-2">
-               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
-                  To Public Wallet
-               </label>
-               <div className="relative">
-                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                       <Wallet size={16} />
-                   </div>
-                   <input 
-                        type="text"
-                        value={recipient}
-                        onChange={(e) => setRecipient(e.target.value)}
-                        placeholder="0x..."
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/5"
-                   />
-                   {recipient === defaultRecipient && defaultRecipient && (
-                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                           My Wallet
-                       </div>
-                   )}
-               </div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+              To Public Wallet
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Wallet size={16} />
+              </div>
+              <input
+                type="text"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                placeholder="0x..."
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/5"
+              />
+              {recipient === defaultRecipient && defaultRecipient && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                  My Wallet
+                </div>
+              )}
+            </div>
           </div>
-
 
           <button
             onClick={handleUnshield}
             disabled={loading}
             className="w-full py-4 bg-black text-white rounded-xl font-bold text-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <>Processing...</>
-            ) : (
-              <>Confirm Unshielding</>
-            )}
+            {loading ? <>Processing...</> : <>Confirm Unshielding</>}
           </button>
         </div>
       </div>

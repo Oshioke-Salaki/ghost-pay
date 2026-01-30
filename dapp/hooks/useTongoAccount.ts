@@ -4,19 +4,20 @@ import { Account as TongoAccount } from "@fatsolutions/tongo-sdk";
 import { hash, constants, ec, RpcProvider } from "starknet";
 import { TONGO_CONTRACTS } from "@/lib/tongoData";
 
+import { useTongoStore } from "@/store/tongoStore";
+
 export const useTongoAccount = () => {
   const { account, address } = useAccount();
 
-  // Registry of Tongo Accounts: Token Symbol -> TongoAccount Instance
-  const [tongoAccounts, setTongoAccounts] = useState<
-    Record<string, TongoAccount>
-  >({});
-  const [isInitializing, setIsInitializing] = useState(false);
-
-  // Rate Registry: Token Symbol -> BigInt Rate
-  const [conversionRates, setConversionRates] = useState<
-    Record<string, bigint>
-  >({});
+  // Access global store state
+  const {
+    tongoAccounts,
+    setTongoAccounts,
+    conversionRates,
+    setConversionRates,
+    isInitializing,
+    setIsInitializing,
+  } = useTongoStore();
 
   const tongoProvider = useMemo(() => {
     return new RpcProvider({
@@ -25,25 +26,11 @@ export const useTongoAccount = () => {
     });
   }, []);
 
-  // Debug: Check provider connection
-  useEffect(() => {
-    if (tongoProvider) {
-      tongoProvider
-        .getChainId()
-        .then((chainId) => {
-          console.log("🔌 Tongo Provider Connected to Chain:", chainId);
-        })
-        .catch((e) => console.error("🔌 Tongo Provider Connection Error:", e));
-    }
-  }, [tongoProvider]);
-
   const initializeTongo = useCallback(async () => {
     if (!account || !address || !tongoProvider) return;
     setIsInitializing(true);
 
     try {
-      console.log(`🔌 Tongo Init: Forcing MAINNET connection`);
-
       // 1. Sign Message for Deterministic Key (Once for all tokens)
       const signature = await account.signMessage({
         types: {
@@ -61,8 +48,7 @@ export const useTongoAccount = () => {
           chainId: constants.StarknetChainId.SN_MAIN, // Force Mainnet Chain ID
         },
         message: {
-          action: "ghostpay-login-v1",
-          wallet: address,
+          action: "login",
         },
       });
 
@@ -93,10 +79,6 @@ export const useTongoAccount = () => {
       const tokens = TONGO_CONTRACTS["mainnet"]; // Hardcoded to Mainnet per requirement
 
       for (const [symbol, contractInfo] of Object.entries(tokens)) {
-        console.log(
-          `🎯 Init Tongo for [${symbol}]: ${contractInfo.address}`
-        );
-
         // Store Rate
         newRates[symbol] = BigInt(contractInfo.rate);
 
@@ -104,7 +86,7 @@ export const useTongoAccount = () => {
         newAccounts[symbol] = new TongoAccount(
           privateKey,
           contractInfo.address,
-          tongoProvider
+          tongoProvider,
         );
       }
 
@@ -125,7 +107,7 @@ export const useTongoAccount = () => {
     (symbol: string) => {
       return tongoAccounts[symbol] || null;
     },
-    [tongoAccounts]
+    [tongoAccounts],
   );
 
   return {
@@ -134,7 +116,7 @@ export const useTongoAccount = () => {
     initializeTongo,
     isInitializing,
     conversionRates,
-    // Keep legacy single-account return for gradual refactor if needed, 
+    // Keep legacy single-account return for gradual refactor if needed,
     // but better to break it to force updates:
     // tongoAccount: tongoAccounts["STRK"] // Optional: remove this to enforce new pattern
   };

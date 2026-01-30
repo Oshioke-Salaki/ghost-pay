@@ -9,6 +9,7 @@ import {
   useInjectedConnectors,
   voyager,
   jsonRpcProvider,
+  paymasterRpcProvider,
 } from "@starknet-react/core";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,17 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <StarknetConfig
+    paymasterProvider={paymasterRpcProvider({
+        rpc: () => {
+          return {
+            nodeUrl: "https://starknet.paymaster.avnu.fi",
+            headers: {
+              "x-paymaster-api-key":
+                process.env.NEXT_PUBLIC_PAYMASTER_API ?? "",
+            },
+          };
+        },
+      })}
       chains={[mainnet]}
       provider={provider}
       connectors={connectors}

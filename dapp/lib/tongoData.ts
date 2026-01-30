@@ -10,6 +10,7 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       rate: "50000000000000000",
+      decimals: 18,
     },
     ETH: {
       address:
@@ -17,6 +18,7 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
       rate: "3000000000000",
+      decimals: 18,
     },
     USDC: {
       address:
@@ -24,6 +26,7 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x033068F6539f8e6e6b131e6B2B814e6c34A5224bC66947c47DaB9dFeE93b35fb",
       rate: "10000",
+      decimals: 6,
     },
     USDT: {
       address:
@@ -31,6 +34,7 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
       rate: "10000",
+      decimals: 6,
     },
     WBTC: {
       address:
@@ -38,6 +42,7 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
       rate: "10",
+      decimals: 8,
     },
   },
   sepolia: {
@@ -46,11 +51,13 @@ export const TONGO_CONTRACTS = {
       erc20:
         "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       rate: "50000000000000000",
+      decimals: 18,
     },
     ETH: {
       address: "0x2cf0dc1d9e8c7731353dd15e6f2f22140120ef2d27116b982fa4fed87f",
       erc20: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e0",
       rate: "3000000000000",
+      decimals: 18,
     },
   },
 };

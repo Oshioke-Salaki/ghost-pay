@@ -26,9 +26,12 @@ export default function WrapModal({
   const [loading, setLoading] = useState(false);
 
   const tokens = Object.keys(TONGO_CONTRACTS["mainnet"]);
-  
+
   // Safe access to contract data
-  const currentToken = TONGO_CONTRACTS["mainnet"][selectedSymbol as keyof typeof TONGO_CONTRACTS["mainnet"]];
+  const currentToken =
+    TONGO_CONTRACTS["mainnet"][
+      selectedSymbol as keyof (typeof TONGO_CONTRACTS)["mainnet"]
+    ];
 
   const { data: balanceData, isLoading: loadingBalance } = useBalance({
     address,
@@ -36,9 +39,7 @@ export default function WrapModal({
     refetchInterval: 5000,
   });
 
-  const publicBalance = balanceData
-    ? parseFloat(balanceData.formatted)
-    : 0.0;
+  const publicBalance = balanceData ? parseFloat(balanceData.formatted) : 0.0;
 
   if (!isOpen) return null;
 
@@ -61,8 +62,8 @@ export default function WrapModal({
     }
 
     if (!account || !currentToken) {
-        toast.error("Account or Token config missing");
-        return;
+      toast.error("Account or Token config missing");
+      return;
     }
 
     setLoading(true);
@@ -70,20 +71,17 @@ export default function WrapModal({
 
     try {
       // 1. Calculate Amounts
-       // Use correct decimals from balance hook or fallback (STRK/ETH=18, USDC/USDT=6)
-      const decimals = balanceData?.decimals || 18; 
+      // Use correct decimals from balance hook or fallback (STRK/ETH=18, USDC/USDT=6)
+      const decimals = balanceData?.decimals || 18;
       const amountWei = parseUnits(amount, decimals);
-      
+
       const tongoRate = BigInt(currentToken.rate);
       const tongoUnits = amountWei / tongoRate;
 
-      console.log(`Wrapping ${amount} ${selectedSymbol}`);
-      console.log(`Wei: ${amountWei}, Rate: ${tongoRate}, TongoUnits: ${tongoUnits}`);
-
       // 2. Prepare Op: Fund (Deposit)
       const op = await accountInstance.fund({
-          sender: address!, 
-          amount: tongoUnits,
+        sender: address!,
+        amount: tongoUnits,
       });
       const fundCall = op.toCalldata();
 
@@ -100,25 +98,36 @@ export default function WrapModal({
         }),
       };
 
-      // 4. Execute Multicall
-      console.log("Executing [Approve, Fund]...");
-      const tx = await account.execute([approveCall, fundCall]);
-      
-      console.log("Tx Hash:", tx.transaction_hash);
+      const tx = await account.executePaymasterTransaction(
+        [approveCall, fundCall],
+        {
+          feeMode: {
+            mode: "sponsored",
+          },
+        },
+      );
+
       await provider.waitForTransaction(tx.transaction_hash);
 
-      toast.success(`Shielded ${selectedSymbol} successfully!`, { id: toastId });
+      toast.success(`Shielded ${selectedSymbol} successfully!`, {
+        id: toastId,
+      });
       onClose();
       setAmount("");
     } catch (e: any) {
       console.error("Shield Error:", e);
-      const isCancelled = e.message?.includes("User rejected") || e.message?.includes("User abort") || e.message?.includes("Execute failed");
-      
+      const isCancelled =
+        e.message?.includes("User rejected") ||
+        e.message?.includes("User abort") ||
+        e.message?.includes("Execute failed");
+
       if (isCancelled) {
-         toast.error("Transaction cancelled", { id: toastId });
-         onClose()
+        toast.error("Transaction cancelled", { id: toastId });
+        onClose();
       } else {
-         toast.error("Failed to shield: " + (e.message || "Unknown error"), { id: toastId });
+        toast.error("Failed to shield: " + (e.message || "Unknown error"), {
+          id: toastId,
+        });
       }
     } finally {
       setLoading(false);

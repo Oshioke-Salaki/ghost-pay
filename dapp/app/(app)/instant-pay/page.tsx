@@ -2,10 +2,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAccount, useProvider } from "@starknet-react/core";
-import { ArrowLeft, Zap, CheckCircle2, Loader2, FileText, ChevronDown } from "lucide-react";
+import {
+  ArrowLeft,
+  Zap,
+  CheckCircle2,
+  Loader2,
+  FileText,
+  ChevronDown,
+} from "lucide-react";
 import { useTongoAccount } from "@/hooks/useTongoAccount";
 import { parseUnits, formatUnits } from "ethers";
-import { CallData } from "starknet";
+import { CallData, PaymasterDetails } from "starknet";
 import { TONGO_CONTRACTS } from "@/lib/tongoData";
 import WalletConnectButton from "@/components/ConnectWalletButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,14 +47,20 @@ export default function InstantPayPage() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState<"public" | "private">("public");
-  
+
   // Token Selection
   const [selectedToken, setSelectedToken] = useState("STRK");
   const tokens = Object.keys(TONGO_CONTRACTS["mainnet"]);
-  const currentTokenInfo = TONGO_CONTRACTS["mainnet"][selectedToken as keyof typeof TONGO_CONTRACTS["mainnet"]];
+  const currentTokenInfo =
+    TONGO_CONTRACTS["mainnet"][
+      selectedToken as keyof (typeof TONGO_CONTRACTS)["mainnet"]
+    ];
+
+  const displaySymbol =
+    source === "private" ? `t${selectedToken}` : selectedToken;
 
   const [status, setStatus] = useState<"idle" | "processing" | "success">(
-    "idle"
+    "idle",
   );
   const [txHash, setTxHash] = useState("");
 
@@ -58,37 +71,57 @@ export default function InstantPayPage() {
     try {
       const amountWei = parseUnits(amount, 18); // Check decimals if needed - ideally use token decimals
 
+      const feeDetails: PaymasterDetails = {
+        feeMode: {
+          mode: "sponsored",
+        },
+      };
+
       if (source === "public") {
-        const tx = await account.execute({
-          contractAddress: currentTokenInfo.erc20, // Use Selected Token ERC20
-          entrypoint: "transfer",
-          calldata: CallData.compile({
-            recipient: recipientAddr,
-            amount: { low: amountWei, high: 0 },
-          }),
-        });
+        const tx = await account.executePaymasterTransaction(
+          [
+            {
+              contractAddress: currentTokenInfo.erc20,
+              entrypoint: "transfer",
+              calldata: CallData.compile({
+                recipient: recipientAddr,
+                amount: { low: amountWei, high: 0 },
+              }),
+            },
+          ],
+          feeDetails,
+        );
         await provider.waitForTransaction(tx.transaction_hash);
         setTxHash(tx.transaction_hash);
       } else {
         const tongoAccount = tongoAccounts?.[selectedToken];
         const currentRate = conversionRates?.[selectedToken];
 
-        if (!tongoAccount || !currentRate) throw new Error("Vault locked or rate missing");
+        if (!tongoAccount || !currentRate)
+          throw new Error("Vault locked or rate missing");
 
         const tongoUnits = amountWei / currentRate;
         const privateBalanceStr = privateBalances[selectedToken] || "0";
-        
+
         if (parseFloat(amount) > parseFloat(privateBalanceStr)) {
-             throw new Error("Insufficient Private Balance");
+          throw new Error("Insufficient Private Balance");
         }
-        
+
         const op = await tongoAccount.withdraw({
           sender: address!,
           amount: tongoUnits,
           to: recipientAddr,
         });
+        const feeDetails: PaymasterDetails = {
+          feeMode: {
+            mode: "sponsored",
+          },
+        };
 
-        const tx = await account.execute([op.toCalldata()]);
+        const tx = await account.executePaymasterTransaction(
+          [op.toCalldata()],
+          feeDetails,
+        );
         await provider.waitForTransaction(tx.transaction_hash);
         setTxHash(tx.transaction_hash);
       }
@@ -113,7 +146,7 @@ export default function InstantPayPage() {
     doc.text(
       `ID:           ${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       14,
-      30
+      30,
     );
     doc.text(`DATE:         ${date}`, 14, 35);
     doc.text(
@@ -121,7 +154,7 @@ export default function InstantPayPage() {
         source === "private" ? "GHOST PROTOCOL (PRIVATE)" : "STANDARD TRANSFER"
       }`,
       14,
-      40
+      40,
     );
 
     autoTable(doc, {
@@ -206,7 +239,9 @@ export default function InstantPayPage() {
               </div>
               <div className="flex justify-between">
                 <span>Amount:</span>{" "}
-                <span className="font-bold text-gray-900">{amount} {selectedToken}</span>
+                <span className="font-bold text-gray-900">
+                  {amount} {selectedToken}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Mode:</span>{" "}
@@ -249,27 +284,39 @@ export default function InstantPayPage() {
               <div className="space-y-6">
                 {/* Select Token with Logos */}
                 <div>
-                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
-                      Select Currency
-                    </label>
-                    <div className="relative group">
-                       <div className="flex items-center gap-3 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors">
-                          <div className="w-8 h-8 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                             <img src={TOKEN_LOGOS[selectedToken] || "/starknetlogo.svg"} alt={selectedToken} className="w-full h-full object-cover" />
-                          </div>
-                          <span className="font-bold text-gray-900 text-lg flex-1">{selectedToken}</span>
-                          <ChevronDown size={20} className="text-gray-400" />
-                       </div>
-                       
-                       <select
-                        value={selectedToken}
-                        onChange={(e) => setSelectedToken(e.target.value)}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      >
-                         {tokens.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+                    Select Currency
+                  </label>
+                  <div className="relative group">
+                    <div className="flex items-center gap-3 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={
+                            TOKEN_LOGOS[selectedToken] || "/starknetlogo.svg"
+                          }
+                          alt={selectedToken}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="font-bold text-gray-900 text-lg flex-1">
+                        {displaySymbol}
+                      </span>
+                      <ChevronDown size={20} className="text-gray-400" />
                     </div>
+
+                    <select
+                      value={selectedToken}
+                      onChange={(e) => setSelectedToken(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    >
+                      {tokens.map((t) => (
+                        <option key={t} value={t}>
+                          {source === "private" ? `t${t}` : t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -324,12 +371,18 @@ export default function InstantPayPage() {
                       onChange={(e) => setAmount(e.target.value)}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 text-2xl font-mono focus:outline-none focus:border-black transition-colors"
                     />
-                    
+
                     {/* Token Label Inside Input */}
-                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                         <img src={TOKEN_LOGOS[selectedToken] || "/starknetlogo.svg"} alt={selectedToken} className="w-5 h-5 rounded-full" />
-                         <span className="text-sm font-bold text-gray-400">{selectedToken}</span>
-                     </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                      <img
+                        src={TOKEN_LOGOS[selectedToken] || "/starknetlogo.svg"}
+                        alt={selectedToken}
+                        className="w-5 h-5 rounded-full"
+                      />
+                      <span className="text-sm font-bold text-gray-400">
+                        {displaySymbol}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -347,13 +400,15 @@ export default function InstantPayPage() {
                   ) : (
                     <Zap size={18} fill="currentColor" />
                   )}
-                  {status === "processing" ? "Processing..." : `Send ${selectedToken}`}
+                  {status === "processing"
+                    ? "Processing..."
+                    : `Send ${displaySymbol}`}
                 </button>
               </div>
             </div>
-            
+
             <FundingSource
-              tongoAccount={tongoAccounts?.[selectedToken] || null} 
+              tongoAccount={tongoAccounts?.[selectedToken] || null}
               initializeTongo={initializeTongo}
               address={address}
               source={source}

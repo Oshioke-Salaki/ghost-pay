@@ -8,17 +8,23 @@ import { Employee } from "@/types/employee";
 interface SuccessSummaryProps {
   employees: Employee[];
   totalAmount: number;
+  organizationId: string;
 }
 
 const SuccessSummary: React.FC<SuccessSummaryProps> = ({
   employees,
   totalAmount,
+  organizationId,
 }) => {
   const totalEmployees = employees.length;
 
   // 2. The PDF Generation Logic
   const generateReceipt = () => {
     const doc = new jsPDF();
+    // ... (code omitted for brevity in replace, but needed for context matching. I will target smaller chunks to avoid large context matching issues if possible, but here I need to change props and usage below)
+
+    // Actually, let's just replace the interface and component signature, then the Link separately or all in one go if they are close. They are far apart.
+    // I'll do two chunks.
 
     // -- STYLING SETUP --
     // We use "Courier" font to give it that "Secret Document" feel
@@ -33,7 +39,7 @@ const SuccessSummary: React.FC<SuccessSummaryProps> = ({
     doc.text(
       `REFERENCE ID: ${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       14,
-      28
+      28,
     );
     doc.text(`TIMESTAMP:    ${new Date().toLocaleString()}`, 14, 33);
     doc.text(`PROTOCOL:     TONGO`, 14, 38);
@@ -53,7 +59,9 @@ const SuccessSummary: React.FC<SuccessSummaryProps> = ({
 
     autoTable(doc, {
       startY: 48,
-      head: [["RECIPIENT IDENTITY", "DESTINATION WALLET", "AMOUNT (USD)", "STATUS"]],
+      head: [
+        ["RECIPIENT IDENTITY", "DESTINATION WALLET", "AMOUNT (USD)", "STATUS"],
+      ],
       body: tableBody,
       theme: "plain", // Minimalist theme
       styles: {
@@ -91,7 +99,7 @@ const SuccessSummary: React.FC<SuccessSummaryProps> = ({
     doc.text(
       "CERTIFIED: This document verifies that funds were successfully distributed via the Starknet network.",
       14,
-      pageHeight - 10
+      pageHeight - 10,
     );
     doc.save(`ghostpay_receipt_${new Date().toISOString().split("T")[0]}.pdf`);
   };
@@ -125,10 +133,10 @@ const SuccessSummary: React.FC<SuccessSummaryProps> = ({
 
       <div className="flex justify-center gap-4">
         <Link
-          href="/dashboard"
+          href={`/organizations/${organizationId}`}
           className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
         >
-          <Home size={18} /> Return Home
+          <Home size={18} /> Back to Org
         </Link>
 
         <button

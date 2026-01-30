@@ -17,12 +17,26 @@ export type AssetPortfolio = {
   formattedPrivate: string;
 };
 
-export function usePortfolio() {
+type UsePortfolioProps = {
+  accounts?: Record<string, any>;
+  rates?: Record<string, bigint>;
+};
+
+export function usePortfolio(props: UsePortfolioProps = {}) {
   const { address } = useAccount();
-  const { tongoAccounts, conversionRates } = useTongoAccount();
-  
+  const { tongoAccounts: internalAccounts, conversionRates: internalRates } =
+    useTongoAccount();
+
+  const tongoAccounts = props.accounts || internalAccounts;
+  const conversionRates = props.rates || internalRates;
+
   // -- Private Balances --
-  const { privateBalances, loadingPrivateBalance } = usePrivateBalance({
+  const {
+    privateBalances,
+    loadingPrivateBalance,
+    refetchPrivateBalances,
+    errors,
+  } = usePrivateBalance({
     tongoAccounts,
     conversionRates,
   });
@@ -31,27 +45,46 @@ export function usePortfolio() {
   // We explicitly list them or map them. Since hooks inside loop are tricky with linters,
   // we will perform the fetch logic in a way that satisfies React rules or use a known list.
   // For V1, we simply hardcode the top assets to ensure safe hook usage.
-  
+
   // 1. STRK
-  const { data: strkData } = useBalance({ address, token: TONGO_CONTRACTS.mainnet.STRK.erc20 as `0x${string}`, watch: true });
+  const { data: strkData } = useBalance({
+    address,
+    token: TONGO_CONTRACTS.mainnet.STRK.erc20 as `0x${string}`,
+    watch: true,
+  });
   const { price: strkPrice } = useAvnuPrice("STRK");
 
   // 2. ETH
-  const { data: ethData } = useBalance({ address, token: TONGO_CONTRACTS.mainnet.ETH.erc20 as `0x${string}`, watch: true });
+  const { data: ethData } = useBalance({
+    address,
+    token: TONGO_CONTRACTS.mainnet.ETH.erc20 as `0x${string}`,
+    watch: true,
+  });
   const { price: ethPrice } = useAvnuPrice("ETH");
 
   // 3. USDC
-  const { data: usdcData } = useBalance({ address, token: TONGO_CONTRACTS.mainnet.USDC.erc20 as `0x${string}`, watch: true });
+  const { data: usdcData } = useBalance({
+    address,
+    token: TONGO_CONTRACTS.mainnet.USDC.erc20 as `0x${string}`,
+    watch: true,
+  });
   const { price: usdcPrice } = useAvnuPrice("USDC");
-  
+
   // 4. USDT
-  const { data: usdtData } = useBalance({ address, token: TONGO_CONTRACTS.mainnet.USDT.erc20 as `0x${string}`, watch: true });
+  const { data: usdtData } = useBalance({
+    address,
+    token: TONGO_CONTRACTS.mainnet.USDT.erc20 as `0x${string}`,
+    watch: true,
+  });
   const { price: usdtPrice } = useAvnuPrice("USDT");
 
   // 5. WBTC
-  const { data: wbtcData } = useBalance({ address, token: TONGO_CONTRACTS.mainnet.WBTC.erc20 as `0x${string}`, watch: true });
+  const { data: wbtcData } = useBalance({
+    address,
+    token: TONGO_CONTRACTS.mainnet.WBTC.erc20 as `0x${string}`,
+    watch: true,
+  });
   const { price: wbtcPrice } = useAvnuPrice("WBTC");
-
 
   const portfolio = useMemo(() => {
     const assets: AssetPortfolio[] = [];
@@ -59,10 +92,10 @@ export function usePortfolio() {
     const addAsset = (symbol: string, pubData: any, price: number) => {
       const pubStr = pubData?.formatted || "0";
       const privStr = privateBalances?.[symbol] || "0";
-      
+
       const pubVal = parseFloat(pubStr);
       const privVal = parseFloat(privStr);
-      
+
       const pubUsd = pubVal * price;
       const privUsd = privVal * price;
 
@@ -96,15 +129,24 @@ export function usePortfolio() {
       totalPrivateUsd,
       totalUsd,
       privacyRatio,
-      loading: loadingPrivateBalance // simplistic loading state
+      loading: loadingPrivateBalance,
+      refetch: () => refetchPrivateBalances(), // Expose refetch
+      errors,
     };
   }, [
-    strkData, strkPrice,
-    ethData, ethPrice,
-    usdcData, usdcPrice,
-    usdtData, usdtPrice,
-    wbtcData, wbtcPrice,
-    privateBalances, loadingPrivateBalance
+    strkData,
+    strkPrice,
+    ethData,
+    ethPrice,
+    usdcData,
+    usdcPrice,
+    usdtData,
+    usdtPrice,
+    wbtcData,
+    wbtcPrice,
+    privateBalances,
+    loadingPrivateBalance,
+    refetchPrivateBalances, // Add dependency
   ]);
 
   return portfolio;

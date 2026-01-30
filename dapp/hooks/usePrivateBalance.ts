@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { formatUnits } from "ethers";
+import { TONGO_CONTRACTS } from "@/lib/tongoData";
 
 type UsePrivateBalanceArgs = {
   tongoAccounts?: Record<
@@ -18,9 +19,9 @@ export function usePrivateBalance({
   pollInterval = 10_000,
 }: UsePrivateBalanceArgs) {
   // Store balances as a map: { "STRK": "120.5", "USDC": "5000.0" }
-  const [privateBalances, setPrivateBalances] = useState<Record<string, string>>(
-    {}
-  );
+  const [privateBalances, setPrivateBalances] = useState<
+    Record<string, string>
+  >({});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, unknown>>({});
 
@@ -44,7 +45,9 @@ export function usePrivateBalance({
 
             if (rate) {
               const bal = state.balance * rate;
-              newBalances[symbol] = formatUnits(bal, 18);
+              // @ts-ignore
+              const decimals = TONGO_CONTRACTS.mainnet[symbol]?.decimals || 18;
+              newBalances[symbol] = formatUnits(bal, decimals);
             } else {
               newBalances[symbol] = "0.0"; // Fallback if no rate found
             }
@@ -52,10 +55,11 @@ export function usePrivateBalance({
             console.error(`Failed to fetch balance for ${symbol}:`, e);
             newErrors[symbol] = e;
           }
-        })
+        }),
       );
 
       setPrivateBalances((prev) => ({ ...prev, ...newBalances }));
+      setErrors(newErrors);
     } catch (e) {
       console.error("Global fetch error:", e);
     } finally {

@@ -14,10 +14,6 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    console.log(connectors);
-  });
-
-  useEffect(() => {
     setMounted(true);
 
     if (isOpen) {
@@ -120,7 +116,7 @@ function ConnectWalletModal({ isOpen, onClose }: ConnectModalProps) {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
