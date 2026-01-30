@@ -25,15 +25,20 @@ export default function PersonalAssets() {
     initializeTongo,
     isInitializing,
     getAccount,
+    conversionRates,
   } = useTongoAccount();
 
-  const { assets, loading } = usePortfolio();
+  const { assets, loading, refetch } = usePortfolio({
+    accounts: tongoAccounts,
+    rates: conversionRates,
+  });
 
   const [showShieldModal, setShowShieldModal] = useState(false);
   const [shieldMode, setShieldMode] = useState<"shield" | "unshield">("shield");
   const [showSwapModal, setShowSwapModal] = useState(false);
 
-  const isVaultLocked = !tongoAccounts || Object.keys(tongoAccounts).length === 0;
+  const isVaultLocked =
+    !tongoAccounts || Object.keys(tongoAccounts).length === 0;
 
   // -- STATE 1: NOT INITIALIZED --
   if (isVaultLocked) {
@@ -70,8 +75,6 @@ export default function PersonalAssets() {
     );
   }
 
-
-
   const openManager = () => {
     setShieldMode("shield"); // Default to shield, user can toggle
     setShowShieldModal(true);
@@ -79,94 +82,112 @@ export default function PersonalAssets() {
 
   return (
     <div className="space-y-8 animate-in fade-in active-vault-view">
-      
       {/* ADDRESS & INFO SECTION */}
       <div className="grid md:grid-cols-2 gap-6">
-          {/* Public Wallet Info */}
-          <div className="bg-white border border-gray-200 p-6 rounded-2xl flex flex-col justify-between h-full">
-              <div className="mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2 text-gray-900">
-                      <Wallet size={20} /> Public Wallet
-                  </h3>
-                  <p className="text-gray-500 text-sm">Visible on Starknet.</p>
-              </div>
-              <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                    <div className="flex-1 truncate font-mono text-xs text-gray-600">
-                        {address || "Not Connected"}
-                    </div>
-                    {address && <CopyButton text={address} />}
-              </div>
+        {/* Public Wallet Info */}
+        <div className="bg-white border border-gray-200 p-6 rounded-2xl flex flex-col justify-between h-full">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-gray-900">
+              <Wallet size={20} /> Public Wallet
+            </h3>
+            <p className="text-gray-500 text-sm">Visible on Starknet.</p>
           </div>
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <div className="flex-1 truncate font-mono text-xs text-gray-600">
+              {address || "Not Connected"}
+            </div>
+            {address && <CopyButton text={address} />}
+          </div>
+        </div>
 
-          {/* Ghost Vault Info */}
-          <div className="bg-gray-900 text-white p-6 rounded-2xl flex flex-col justify-between h-full">
-              <div className="mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                      <Ghost size={20} /> Ghost Vault
-                  </h3>
-                  <p className="text-gray-400 text-sm">Encrypted & Shielded.</p>
-              </div>
-              <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-3 border border-gray-700">
-                    <div className="flex-1 truncate font-mono text-xs text-gray-300">
-                        {getAccount("STRK")?.tongoAddress() || "..."}
-                    </div>
-                    <CopyButton text={getAccount("STRK")?.tongoAddress() || ""} />
-              </div>
+        {/* Ghost Vault Info */}
+        <div className="bg-gray-900 text-white p-6 rounded-2xl flex flex-col justify-between h-full">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Ghost size={20} /> Ghost Vault
+            </h3>
+            <p className="text-gray-400 text-sm">Encrypted & Shielded.</p>
           </div>
+          <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-3 border border-gray-700">
+            <div className="flex-1 truncate font-mono text-xs text-gray-300">
+              {getAccount("STRK")?.tongoAddress() || "..."}
+            </div>
+            <CopyButton text={getAccount("STRK")?.tongoAddress() || ""} />
+          </div>
+        </div>
       </div>
 
       {/* GLOBAL ACTIONS - Merged Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button
-            onClick={openManager}
-            className="py-5 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-gray-800 transition-all text-lg"
-          >
-              <Shield size={22} />
-              Manage Privacy (Shield/Unshield)
-          </button>
+        <button
+          onClick={openManager}
+          className="py-5 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-gray-800 transition-all text-lg"
+        >
+          <Shield size={22} />
+          Manage Privacy (Shield/Unshield)
+        </button>
 
-          <button
-            onClick={() => setShowSwapModal(true)}
-            className="py-5 bg-purple-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-purple-700 transition-all text-lg"
-          >
-              <RefreshCw size={22} />
-              Swap on AVNU
-          </button>
+        <button
+          onClick={() => setShowSwapModal(true)}
+          className="py-5 bg-purple-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-purple-700 transition-all text-lg"
+        >
+          <RefreshCw size={22} />
+          Swap on AVNU
+        </button>
       </div>
 
       {/* ASSET LIST */}
       <div>
-          <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Lock size={20} /> Your Portfolio
-          </h4>
-          <div className="space-y-3">
-              {assets.map((asset) => (
-                  <VaultTokenRow
-                    key={asset.symbol}
-                    asset={asset}
-                    loading={loading}
-                  />
-              ))}
-          </div>
+        <h4 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Lock size={20} /> Your Portfolio
+          <button
+            onClick={() => refetch()}
+            disabled={loading}
+            className="ml-auto p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black"
+            title="Refresh Balances"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+        </h4>
+        {/* Error Warning */}
+        {/* @ts-ignore */}
+        {assets.some((a) => a.symbol === "STRK") &&
+          assets[0]?.privateBalance === 0 && (
+            <div className="mb-2 px-3 py-2 bg-yellow-50 text-yellow-800 text-xs rounded-lg flex items-center gap-2">
+              <span>
+                ⚠️ If your balance is 0 after shielding, click refresh. It may
+                take a moment to index.
+              </span>
+            </div>
+          )}
+        <div className="space-y-3">
+          {assets.map((asset) => (
+            <VaultTokenRow key={asset.symbol} asset={asset} loading={loading} />
+          ))}
+        </div>
       </div>
 
       {/* Unified Shield Modal */}
       <ShieldModal
         isOpen={showShieldModal}
         onClose={() => {
-            setShowShieldModal(false);
-            // Auto refreshes via hook polling
+          setShowShieldModal(false);
+          // Auto refreshes via hook polling
         }}
         tongoAccounts={tongoAccounts}
         /* privateBalances need to be compatible. ShieldModal uses Record<string,string>. 
            assets is array. We should reconstruct the map or update ShieldModal.
            For now let's construct map from assets to keep ShieldModal compatible.*/
-        privateBalances={assets.reduce((acc, a) => ({...acc, [a.symbol]: a.formattedPrivate}), {})}
+        privateBalances={assets.reduce(
+          (acc, a) => ({ ...acc, [a.symbol]: a.formattedPrivate }),
+          {},
+        )}
         initialMode={shieldMode}
+        onSuccess={refetch}
       />
 
       {/* AVNU Swap Modal */}
-      <SwapModal 
+      <SwapModal
         isOpen={showSwapModal}
         onClose={() => setShowSwapModal(false)}
       />

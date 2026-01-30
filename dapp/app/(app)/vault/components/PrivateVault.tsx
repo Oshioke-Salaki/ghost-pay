@@ -33,7 +33,7 @@ function PrivateVault() {
   const [isTransacting, setIsTransacting] = useState(false);
 
   // Private Balance
-  const { privateBalances } = usePrivateBalance({
+  const { privateBalances, refetchPrivateBalances } = usePrivateBalance({
     tongoAccounts,
     conversionRates,
   });
@@ -86,9 +86,14 @@ function PrivateVault() {
             amount: cairo.uint256(wei),
           }),
         };
-        const tx = await account.execute([approveCall, fundCall]);
+        const tx = await account.executePaymasterTransaction([approveCall, fundCall], {
+          feeMode: {
+            mode: "sponsored",
+          },
+        });
         await provider.waitForTransaction(tx.transaction_hash);
         toast.success("Assets shielded successfully!", { id: toastId });
+        refetchPrivateBalances?.();
         setActionAmount("");
       } else {
         // --- UNWRAP (Private -> Public) ---
@@ -99,9 +104,14 @@ function PrivateVault() {
         });
         const call = op.toCalldata();
 
-        const tx = await account.execute([call]);
+        const tx = await account.executePaymasterTransaction([call], {
+          feeMode: {
+            mode: "sponsored",
+          },
+        });
         await provider.waitForTransaction(tx.transaction_hash);
         toast.success("Assets withdrawn successfully!", { id: toastId });
+        refetchPrivateBalances?.();
         setActionAmount("");
       }
     } catch (e) {

@@ -40,7 +40,7 @@ function EmployeesContent() {
       }
 
       const targetOrganization = organizations.find(
-        (c) => c.id === organizationId
+        (c) => c.id === organizationId,
       );
 
       if (
@@ -133,7 +133,7 @@ function EmployeesContent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 items-stretch">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -149,14 +149,14 @@ function EmployeesContent() {
           <AddEmployeeForm />
         </motion.div>
 
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="h-full"
         >
           <MagicInput organizationId={activeOrganization?.id || organizationId!} />
-        </motion.div>
+        </motion.div> */}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -171,7 +171,9 @@ function EmployeesContent() {
             <h3 className="text-lg font-bold text-gray-900">Bulk CSV</h3>
           </div>
           <div className="flex-1">
-            <CSVUploader organizationId={activeOrganization?.id || organizationId!} />
+            <CSVUploader
+              organizationId={activeOrganization?.id || organizationId!}
+            />
           </div>
         </motion.div>
       </div>

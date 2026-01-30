@@ -10,10 +10,12 @@ import { useUIStore } from "@/store/uiStore";
 import { supabase } from "@/utils/superbase/server";
 import { useAccount } from "@starknet-react/core";
 import { useOrganizationStore } from "@/store/organizationStore";
+import toast from "react-hot-toast";
 
 export default function EmployeeTable() {
   const { address: employer } = useAccount();
   const [loading, setLoading] = React.useState(true);
+  const [deletingIndex, setDeletingIndex] = React.useState<number | null>(null);
   const employees = usePayrollStore((s) => s.employees);
   const remove = usePayrollStore((s) => s.removeEmployee);
   const hideAmounts = useUIStore((s) => s.hideAmounts);
@@ -27,6 +29,20 @@ export default function EmployeeTable() {
       ? params.organizationId[0]
       : params.organizationId
     : activeOrganization?.id;
+
+  const handleDelete = async (index: number) => {
+    if (deletingIndex !== null) return;
+    setDeletingIndex(index);
+    try {
+      await remove(index);
+      toast.success("Employee removed");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to delete employee");
+    } finally {
+      setDeletingIndex(null);
+    }
+  };
 
   useEffect(() => {
     if (!employer || !organizationId) return;
@@ -120,9 +136,7 @@ export default function EmployeeTable() {
                           {e.position}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs italic">
-                          -
-                        </span>
+                        <span className="text-gray-400 text-xs italic">-</span>
                       )}
                     </td>
 
@@ -139,7 +153,11 @@ export default function EmployeeTable() {
                           hideAmounts ? "blur-sm select-none" : ""
                         }`}
                       >
-                        ${(e.salary_usd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        $
+                        {(e.salary_usd || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                         <span className="text-gray-400 text-xs ml-1">USD</span>
                       </span>
                     </td>
@@ -159,11 +177,19 @@ export default function EmployeeTable() {
 
                     <td className="px-6 py-4 text-right">
                       <button
-                        onClick={() => remove(i)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        onClick={() => handleDelete(i)}
+                        disabled={deletingIndex !== null}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Remove Employee"
                       >
-                        <Trash size={16} />
+                        {deletingIndex === i ? (
+                          <Loader2
+                            size={16}
+                            className="animate-spin text-red-500"
+                          />
+                        ) : (
+                          <Trash size={16} />
+                        )}
                       </button>
                     </td>
                   </tr>

@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccount, useProvider, useBalance } from "@starknet-react/core";
-import { Call, CallData } from "starknet";
+import { Call, CallData, PaymasterDetails } from "starknet";
 import { parseUnits, formatUnits } from "ethers";
 import {
   Play,
@@ -16,14 +16,13 @@ import {
   ShieldAlert,
   Wallet,
   Lock,
-  CheckCircle2,
   AlertCircle,
   Building2,
   User,
   FileText,
   ChevronDown,
   RefreshCw,
-  Coins
+  Coins,
 } from "lucide-react";
 
 import { usePayrollStore } from "@/store/payrollStore";
@@ -48,7 +47,7 @@ const TOKEN_LOGOS: Record<string, string> = {
 
 export default function OrganizationDistributePage() {
   const { organizationId } = useParams();
-  const router = useRouter();
+
   const { account, address } = useAccount();
   const { provider } = useProvider();
 
@@ -64,21 +63,25 @@ export default function OrganizationDistributePage() {
   // Tongo & Balance State
   const { tongoAccounts, initializeTongo, isInitializing, conversionRates } =
     useTongoAccount();
-    
+
   // State for Multi-Currency
   const [selectedToken, setSelectedToken] = useState("STRK");
   const tokens = Object.keys(TONGO_CONTRACTS["mainnet"]);
-  const currentTokenInfo = TONGO_CONTRACTS["mainnet"][selectedToken as keyof typeof TONGO_CONTRACTS["mainnet"]];
+  const currentTokenInfo =
+    TONGO_CONTRACTS["mainnet"][
+      selectedToken as keyof (typeof TONGO_CONTRACTS)["mainnet"]
+    ];
 
   // Price Fetching
-  const { price: tokenPrice, loading: priceLoading } = useAvnuPrice(selectedToken);
+  const { price: tokenPrice, loading: priceLoading } =
+    useAvnuPrice(selectedToken);
 
   const [privateBalance, setPrivateBalance] = useState(0n);
 
   // Page State
   const [loadingData, setLoadingData] = useState(true);
   const [paymentSource, setPaymentSource] = useState<"public" | "private">(
-    "public"
+    "public",
   );
   const [status, setStatus] = useState<
     "idle" | "preparing" | "signing" | "distributing" | "completed"
@@ -163,28 +166,42 @@ export default function OrganizationDistributePage() {
   });
 
   // --- CALCULATIONS ---
-  const totalSalaryUSD = employees.reduce((sum, e) => sum + (e.salary_usd || 0), 0);
-  
+  const totalSalaryUSD = employees.reduce(
+    (sum, e) => sum + (e.salary_usd || 0),
+    0,
+  );
+
   // Dynamic Crypto Calculation
   const estimatedTotalTokens = tokenPrice > 0 ? totalSalaryUSD / tokenPrice : 0;
-  
-  const decimals = publicBalanceData?.decimals || (['USDC', 'USDT'].includes(selectedToken) ? 6 : 18);
-  
+
+  const decimals =
+    publicBalanceData?.decimals ||
+    (["USDC", "USDT"].includes(selectedToken) ? 6 : 18);
+
   // Helper to get formatted string for display
   const formatTokenAmount = (amount: number) => {
-      return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    return amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    });
   };
 
   // Check Funds
-  const publicBalanceVal = publicBalanceData ? parseFloat(publicBalanceData.formatted) : 0;
+  const publicBalanceVal = publicBalanceData
+    ? parseFloat(publicBalanceData.formatted)
+    : 0;
   const hasPublicFunds = publicBalanceVal >= estimatedTotalTokens;
 
   // Private Check
   const currentRate = conversionRates?.[selectedToken] || 0n;
-  // Private Balance is in Tongo Units. 
+  // Private Balance is in Tongo Units.
   // We need Tongo Units needed = (TokenWei) / Rate
-  const totalTokenWei = parseUnits(estimatedTotalTokens.toFixed(decimals), decimals);
-  const totalTongoUnitsNeeded = currentRate > 0n ? totalTokenWei / currentRate : 0n;
+  const totalTokenWei = parseUnits(
+    estimatedTotalTokens.toFixed(decimals),
+    decimals,
+  );
+  const totalTongoUnitsNeeded =
+    currentRate > 0n ? totalTokenWei / currentRate : 0n;
   const hasPrivateFunds = privateBalance >= totalTongoUnitsNeeded;
 
   const isBalanceSufficient =
@@ -197,23 +214,26 @@ export default function OrganizationDistributePage() {
     if (!account || employees.length === 0) return;
     if (!isBalanceSufficient)
       return alert(`Insufficient funds in ${paymentSource} source.`);
-    if (tokenPrice <= 0) return alert("Price feed error. Cannot calculate payout.");
+    if (tokenPrice <= 0)
+      return alert("Price feed error. Cannot calculate payout.");
 
     try {
       setStatus("preparing");
       setLogs([]);
       const allCalls: Call[] = [];
 
-      addLog(`Initiating USD Payroll Run ($${totalSalaryUSD.toFixed(2)})`);
-      addLog(`Selected Currency: ${selectedToken} @ $${tokenPrice.toFixed(4)}`);
+      addLog(`Initializing Disbursement Sequence...`);
+      addLog(
+        `Currency: ${selectedToken} (${paymentSource === "private" ? "Shielded" : "Public"})`,
+      );
 
       if (paymentSource === "public") {
-        addLog(`Mode: Standard Public Distribution`);
+        addLog(`Protocol: Standard On-Chain Transfer`);
 
         for (const emp of employees) {
           const tokenAmount = (emp.salary_usd || 0) / tokenPrice;
           const weiAmount = parseUnits(tokenAmount.toFixed(decimals), decimals);
-          
+
           allCalls.push({
             contractAddress: currentTokenInfo.erc20,
             entrypoint: "transfer",
@@ -222,18 +242,22 @@ export default function OrganizationDistributePage() {
               amount: { low: weiAmount, high: 0 },
             }),
           });
-          addLog(`• Queued: ${emp.first_name} ($${emp.salary_usd} -> ${tokenAmount.toFixed(4)} ${selectedToken})`);
+          addLog(
+            `Allocating: ${emp.first_name} [${tokenAmount.toFixed(2)} ${selectedToken}]`,
+          );
         }
       } else {
-        addLog("Mode: Confidential Transfer (Ghost Protocol)");
+        addLog("Protocol: Ghost Corporate Shielding (Active)");
         const tongoAccount = tongoAccounts?.[selectedToken];
-        
+
         if (!tongoAccount || !currentRate)
-          throw new Error("Private identity not initialized.");
+          throw new Error("Private vault authorization missing.");
 
         for (const [index, emp] of employees.entries()) {
-          addLog(`[${index + 1}/${employees.length}] Securing payment for ${emp.first_name}...`);
-          await new Promise((r) => setTimeout(r, 50)); 
+          addLog(
+            `Securing Allocation [${index + 1}/${employees.length}]: ${emp.first_name}`,
+          );
+          await new Promise((r) => setTimeout(r, 50));
 
           const tokenAmount = (emp.salary_usd || 0) / tokenPrice;
           const weiAmount = parseUnits(tokenAmount.toFixed(decimals), decimals);
@@ -249,11 +273,24 @@ export default function OrganizationDistributePage() {
       }
 
       setStatus("signing");
-      addLog(`Preparing ${allCalls.length} transactions...`);
-      const multiCall = await account.execute(allCalls);
+      setStatus("signing");
+      addLog(
+        `Generating batch settlement signatures (${allCalls.length} txs)...`,
+      );
+      const feeDetails: PaymasterDetails = {
+        feeMode: {
+          mode: "sponsored",
+        },
+      };
+      const multiCall = await account.executePaymasterTransaction(
+        allCalls,
+        feeDetails,
+      );
 
       setStatus("distributing");
-      addLog(`Processing: ${multiCall.transaction_hash.slice(0, 10)}...`);
+      addLog(
+        `Broadcasting Settlement: ${multiCall.transaction_hash.slice(0, 10)}...`,
+      );
       await provider.waitForTransaction(multiCall.transaction_hash);
 
       // Save Run to DB
@@ -265,17 +302,17 @@ export default function OrganizationDistributePage() {
         tx_hash: multiCall.transaction_hash,
         status: "completed",
         details: {
-             token: selectedToken,
-             price_at_execution: tokenPrice,
-             recipients: employees.map(e => ({
-                 name: e.first_name,
-                 usd: e.salary_usd,
-                 token_amount: (e.salary_usd || 0) / tokenPrice
-             }))
+          token: selectedToken,
+          price_at_execution: tokenPrice,
+          recipients: employees.map((e) => ({
+            name: e.first_name,
+            usd: e.salary_usd,
+            token_amount: (e.salary_usd || 0) / tokenPrice,
+          })),
         },
       });
 
-      addLog("Distribution complete.");
+      addLog("Batch Settlement Confirmed.");
       setStatus("completed");
     } catch (err: any) {
       console.error(err);
@@ -322,9 +359,7 @@ export default function OrganizationDistributePage() {
             <Layers size={24} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Run Payroll
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Run Payroll</h1>
             <p className="text-gray-500 text-sm">
               {activeOrganization?.name} <span className="mx-2">•</span>{" "}
               {employees.length} Recipients
@@ -359,114 +394,131 @@ export default function OrganizationDistributePage() {
                   <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     {/* 1. Payment Token Selection */}
                     <div className="mb-6">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
-                            Select Payment Token
-                        </label>
-                        <div className="relative group">
-                            <div className="flex items-center gap-3 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors">
-                            <div className="w-8 h-8 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={TOKEN_LOGOS[selectedToken] || "/starknetlogo.svg"} alt={selectedToken} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-bold text-gray-900 text-lg leading-none">{selectedToken}</p>
-                                <p className="text-xs text-gray-400 font-mono mt-1">
-                                    {priceLoading ? "Fetching rate..." : `1 ${selectedToken} ≈ $${tokenPrice.toFixed(2)}`}
-                                </p>
-                            </div>
-                            <ChevronDown size={20} className="text-gray-400" />
-                            </div>
-                            <select
-                                value={selectedToken}
-                                onChange={(e) => setSelectedToken(e.target.value)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            >
-                                {tokens.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+                        Select Payment Token
+                      </label>
+                      <div className="relative group">
+                        <div className="flex items-center gap-3 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors">
+                          <div className="w-8 h-8 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={
+                                TOKEN_LOGOS[selectedToken] ||
+                                "/starknetlogo.svg"
+                              }
+                              alt={selectedToken}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-gray-900 text-lg leading-none">
+                              {selectedToken}
+                            </p>
+                            <p className="text-xs text-gray-400 font-mono mt-1">
+                              {priceLoading
+                                ? "Fetching rate..."
+                                : `1 ${selectedToken} ≈ $${tokenPrice.toFixed(2)}`}
+                            </p>
+                          </div>
+                          <ChevronDown size={20} className="text-gray-400" />
                         </div>
+                        <select
+                          value={selectedToken}
+                          onChange={(e) => setSelectedToken(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        >
+                          {tokens.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     {/* 2. Source Selection */}
                     <div className="mb-8 grid grid-cols-1 gap-3">
-                        {/* Public Option */}
-                        <button
-                          onClick={() => setPaymentSource("public")}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                            paymentSource === "public"
-                              ? "border-black bg-gray-50"
-                              : "border-gray-100 hover:border-gray-200"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`p-2 rounded-lg ${
-                                paymentSource === "public"
-                                  ? "bg-black text-white"
-                                  : "bg-gray-100 text-gray-500"
-                              }`}
-                            >
-                              <Wallet size={20} />
-                            </div>
-                            <div className="text-left">
-                              <p className="font-bold text-sm">Public Wallet</p>
-                              <p className="text-xs text-gray-500">
-                                Bal: {publicBalanceVal.toFixed(4)} {selectedToken}
-                              </p>
-                            </div>
+                      {/* Public Option */}
+                      <button
+                        onClick={() => setPaymentSource("public")}
+                        className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                          paymentSource === "public"
+                            ? "border-black bg-gray-50"
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-lg ${
+                              paymentSource === "public"
+                                ? "bg-black text-white"
+                                : "bg-gray-100 text-gray-500"
+                            }`}
+                          >
+                            <Wallet size={20} />
                           </div>
-                          {!hasPublicFunds && paymentSource === "public" && (
-                              <span className="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">
-                                Low Funds
-                              </span>
-                          )}
-                        </button>
+                          <div className="text-left">
+                            <p className="font-bold text-sm">Public Wallet</p>
+                            <p className="text-xs text-gray-500">
+                              Bal: {publicBalanceVal.toFixed(4)} {selectedToken}
+                            </p>
+                          </div>
+                        </div>
+                        {!hasPublicFunds && paymentSource === "public" && (
+                          <span className="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">
+                            Low Funds
+                          </span>
+                        )}
+                      </button>
 
-                        {/* Private Option */}
-                        <button
-                          onClick={() => {
-                            setPaymentSource("private");
-                            if (!tongoAccounts || !tongoAccounts[selectedToken]) initializeTongo();
-                          }}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                            paymentSource === "private"
-                              ? "border-purple-600 bg-purple-50"
-                              : "border-gray-100 hover:border-purple-100"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`p-2 rounded-lg ${
+                      {/* Private Option */}
+                      <button
+                        onClick={() => {
+                          setPaymentSource("private");
+                          if (!tongoAccounts || !tongoAccounts[selectedToken])
+                            initializeTongo();
+                        }}
+                        className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                          paymentSource === "private"
+                            ? "border-purple-600 bg-purple-50"
+                            : "border-gray-100 hover:border-purple-100"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-lg ${
+                              paymentSource === "private"
+                                ? "bg-purple-600 text-white"
+                                : "bg-purple-100 text-purple-400"
+                            }`}
+                          >
+                            <Ghost size={20} />
+                          </div>
+                          <div className="text-left">
+                            <p
+                              className={`font-bold text-sm ${
                                 paymentSource === "private"
-                                  ? "bg-purple-600 text-white"
-                                  : "bg-purple-100 text-purple-400"
+                                  ? "text-purple-900"
+                                  : "text-gray-900"
                               }`}
                             >
-                              <Ghost size={20} />
-                            </div>
-                            <div className="text-left">
-                              <p
-                                className={`font-bold text-sm ${
-                                  paymentSource === "private"
-                                    ? "text-purple-900"
-                                    : "text-gray-900"
-                                }`}
-                              >
-                                Ghost Vault
-                              </p>
-                              <p className="text-xs text-purple-600/70">
-                                {(!tongoAccounts || !tongoAccounts[selectedToken]) 
-                                    ? "Click to unlock" 
-                                    : `Bal: ${(parseFloat(formatUnits((privateBalance * (conversionRates?.[selectedToken] || 0n)).toString(), decimals))).toFixed(4)} t${selectedToken}`
-                                }
-                              </p>
-                            </div>
+                              Ghost Vault
+                            </p>
+                            <p className="text-xs text-purple-600/70">
+                              {!tongoAccounts || !tongoAccounts[selectedToken]
+                                ? "Click to unlock"
+                                : `Bal: ${parseFloat(formatUnits((privateBalance * (conversionRates?.[selectedToken] || 0n)).toString(), decimals)).toFixed(4)} t${selectedToken}`}
+                            </p>
                           </div>
-                          {!hasPrivateFunds && paymentSource === "private" && tongoAccounts?.[selectedToken] && (
-                             <span className="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">
-                               Low Funds
-                             </span>
+                        </div>
+                        {!hasPrivateFunds &&
+                          paymentSource === "private" &&
+                          tongoAccounts?.[selectedToken] && (
+                            <span className="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">
+                              Low Funds
+                            </span>
                           )}
-                        </button>
+                      </button>
                     </div>
 
                     {/* 3. Summary & Action */}
@@ -484,31 +536,55 @@ export default function OrganizationDistributePage() {
                           Est. Token Payout
                         </span>
                         <div className="text-right">
-                             <span className="text-2xl font-bold font-mono block leading-none">
-                                {formatTokenAmount(estimatedTotalTokens)} {selectedToken}
-                             </span>
-                             <span className="text-xs text-gray-400">@ ${tokenPrice.toFixed(4)}/token</span>
+                          <span className="text-2xl font-bold font-mono block leading-none">
+                            {formatTokenAmount(estimatedTotalTokens)}{" "}
+                            {selectedToken}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            @ ${tokenPrice.toFixed(4)}/token
+                          </span>
                         </div>
                       </div>
 
                       {/* Buffer Warning */}
-                      {isBalanceSufficient && paymentSource === "private" && (Number(formatUnits((privateBalance * (conversionRates?.[selectedToken] || 0n)).toString(), decimals)) < estimatedTotalTokens * 1.01) && (
+                      {isBalanceSufficient &&
+                        paymentSource === "private" &&
+                        Number(
+                          formatUnits(
+                            (
+                              privateBalance *
+                              (conversionRates?.[selectedToken] || 0n)
+                            ).toString(),
+                            decimals,
+                          ),
+                        ) <
+                          estimatedTotalTokens * 1.01 && (
                           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-700 flex items-start gap-2">
-                              <AlertCircle size={16} className="mt-0.5" />
-                              <p><strong>Volatility Warning:</strong> Your balance is very close to the required amount. Price shifts may cause failure. Recommend adding a buffer.</p>
+                            <AlertCircle size={16} className="mt-0.5" />
+                            <p>
+                              <strong>Volatility Warning:</strong> Your balance
+                              is very close to the required amount. Price shifts
+                              may cause failure. Recommend adding a buffer.
+                            </p>
                           </div>
-                      )}
+                        )}
 
                       <button
                         onClick={handleBatchDistribute}
-                        disabled={isInitializing || !isBalanceSufficient || priceLoading || tokenPrice <= 0}
+                        disabled={
+                          isInitializing ||
+                          !isBalanceSufficient ||
+                          priceLoading ||
+                          tokenPrice <= 0
+                        }
                         className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.99]
                                             ${
-                                              !isBalanceSufficient || priceLoading
+                                              !isBalanceSufficient ||
+                                              priceLoading
                                                 ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
                                                 : paymentSource === "private"
-                                                ? "bg-purple-900 text-white hover:bg-purple-950 shadow-purple-200"
-                                                : "bg-black text-white hover:bg-gray-800"
+                                                  ? "bg-purple-900 text-white hover:bg-purple-950 shadow-purple-200"
+                                                  : "bg-black text-white hover:bg-gray-800"
                                             }`}
                       >
                         {isInitializing || priceLoading ? (
@@ -523,26 +599,45 @@ export default function OrganizationDistributePage() {
                     </div>
                   </div>
                 ) : (
-                  // TERMINAL VIEW
-                  <div className="bg-black text-white rounded-2xl p-6 h-[500px] flex flex-col shadow-2xl font-mono text-xs">
-                    <div className="flex items-center gap-2 mb-4 border-b border-gray-800 pb-4">
-                      <div className="flex gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                  // CORPORATE PROCESSOR VIEW
+                  <div className="bg-white rounded-2xl p-8 h-[500px] flex flex-col shadow-xl border border-gray-200">
+                    <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                          <Loader2 className="animate-spin text-black" />
+                          Processing Disbursement
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Ref:{" "}
+                          {activeOrganization?.id.split("-")[0].toUpperCase()}-
+                          {new Date().getFullYear()}
+                        </p>
                       </div>
-                      <span className="ml-auto text-gray-500">
-                        GhostPay Terminal — v2.0
-                      </span>
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          Total Volume
+                        </div>
+                        <div className="text-lg font-mono font-bold text-gray-900">
+                          ${totalSalaryUSD.toLocaleString()}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
 
-                        {logs.map((log, i) => (
-                            <div key={i} className="text-green-400/90 break-all border-l-2 border-green-900 pl-2">
-                                {log}
-                            </div>
-                        ))}
-                      <div className="animate-pulse text-green-500">_</div>
+                    <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+                      {logs.map((log, i) => (
+                        <div
+                          key={i}
+                          className="flex items-start gap-3 text-sm animate-in fade-in slide-in-from-left-2"
+                        >
+                          <div className="mt-1 w-2 h-2 rounded-full bg-gray-300 shrink-0" />
+                          <span className="text-gray-600 font-medium">
+                            {log}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-2 text-sm text-black font-bold animate-pulse pl-5">
+                        Processing next step...
+                      </div>
                     </div>
                   </div>
                 )}
@@ -557,9 +652,7 @@ export default function OrganizationDistributePage() {
                 <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 h-full flex flex-col">
                   <div className="flex items-center gap-2 mb-6">
                     <FileText size={20} className="text-gray-400" />
-                    <h3 className="font-bold text-gray-900">
-                      Payout Preview
-                    </h3>
+                    <h3 className="font-bold text-gray-900">Payout Preview</h3>
                     <span className="ml-auto bg-white border border-gray-200 text-xs font-mono px-2 py-1 rounded text-gray-500">
                       {employees.length} Entries
                     </span>
@@ -587,9 +680,13 @@ export default function OrganizationDistributePage() {
                         </div>
                         <div className="text-right">
                           <p className="font-mono font-bold text-sm text-black">
-                            {tokenPrice > 0 ? ((emp.salary_usd || 0) / tokenPrice).toFixed(2) : "..."}
+                            {tokenPrice > 0
+                              ? ((emp.salary_usd || 0) / tokenPrice).toFixed(2)
+                              : "..."}
                           </p>
-                          <p className="text-[10px] text-gray-400">{selectedToken}</p>
+                          <p className="text-[10px] text-gray-400">
+                            {selectedToken}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -599,7 +696,15 @@ export default function OrganizationDistributePage() {
             </div>
           ) : (
             // SUCCESS
-            <SuccessSummary employees={employees} totalAmount={totalSalaryUSD} /> // Note: Passing USD total
+            <SuccessSummary
+              employees={employees}
+              totalAmount={totalSalaryUSD}
+              organizationId={
+                Array.isArray(organizationId)
+                  ? organizationId[0]
+                  : organizationId!
+              }
+            /> // Note: Passing USD total
           )}
         </AnimatePresence>
       )}

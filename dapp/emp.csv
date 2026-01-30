@@ -1,5 +1,6 @@
-John,Doe,0x1234567890abcdef1234567890abcdef12345678,5000
-Mary,Johnson,0xabcdefabcdefabcdefabcdefabcdefabcd123456,4200
-Samuel,Okoro,0x9988776655443322110099887766554433221100,3500
-Aisha,Bello,0xa1b2c3d4e5f60718293a4b5c6d7e8f9012345678,6800
-Liam,Thompson,0xffeeddccbbaa99887766554433221100ffeeddcc,7200
+First Name,Last Name,Address,Salary (USD),Position
+John,Doe,0x1234567890abcdef1234567890abcdef12345678,5000,Software Engineer
+Mary,Johnson,0xabcdefabcdefabcdefabcdefabcdefabcd123456,4200,Product Manager
+Samuel,Okoro,0x9988776655443322110099887766554433221100,3500,QA Engineer
+Aisha,Bello,0xa1b2c3d4e5f60718293a4b5c6d7e8f9012345678,6800,Senior Developer
+Liam,Thompson,0xffeeddccbbaa99887766554433221100ffeeddcc,7200,Tech Lead
